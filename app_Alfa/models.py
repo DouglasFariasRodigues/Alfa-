@@ -1,6 +1,6 @@
 from django.db import models
 
-# Example model to use 'models' and remove the unused import warning
+# Modelo de exemplo para usar 'models' e remover o aviso de importação não utilizada
 class Admin(models.Model):
     nome = models.CharField(max_length=100)
     email = models.EmailField()
@@ -25,20 +25,20 @@ class Usuario(models.Model):
 
 
 class Membro(models.Model):
-    complete_data = models.TextField()
-    photo = models.ImageField(upload_to='membros_photos/', blank=True, null=True)
+    dados_completos = models.TextField()
+    foto = models.ImageField(upload_to='membros_fotos/', blank=True, null=True)
     status = models.BooleanField(default=True)
 
 class Doacao(models.Model):
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    date = models.DateField(auto_now_add=True)
-    type = models.CharField(max_length=50)
-    member = models.ForeignKey(Membro, related_name='doacoes', on_delete=models.CASCADE)
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    data = models.DateField(auto_now_add=True)
+    tipo = models.CharField(max_length=50)
+    membro = models.ForeignKey(Membro, related_name='doacoes', on_delete=models.CASCADE)
 
 class Igreja(models.Model):
-    name = models.CharField(max_length=100)
-    address = models.CharField(max_length=255)
-    phone = models.CharField(max_length=15, blank=True, null=True)
+    nome = models.CharField(max_length=100)
+    endereco = models.CharField(max_length=255)
+    telefone = models.CharField(max_length=15, blank=True, null=True)
 
 class deleted_at(models.Model):
     deleted_at = models.DateTimeField(auto_now=True)
