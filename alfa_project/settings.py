@@ -1,5 +1,5 @@
 """
-Configurações do Django para o projeto Alfa_project.
+Configurações do Django para o projeto alfa_project.
 
 Gerado por 'django-admin startproject' usando Django 5.2.6.
 
@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'app_Alfa',
+    'app_alfa',
 ]
 
 MIDDLEWARE = [
@@ -50,7 +50,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'Alfa_project.urls'
+ROOT_URLCONF = 'alfa_project.urls'
 
 TEMPLATES = [
     {
@@ -67,7 +67,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'Alfa_project.wsgi.application'
+WSGI_APPLICATION = 'alfa_project.wsgi.application'
 
 
 # Banco de dados
