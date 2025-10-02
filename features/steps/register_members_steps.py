@@ -8,7 +8,7 @@ from app_alfa.models import Admin, Membro, DocumentoMembro
 from datetime import datetime
 
 # Admin cadastra novo membro com dados pessoais (tabela)
-@when('o Admin cadastra um membro com os seguintes dados:')
+@when('o Admin cadastra um membro com os seguintes dados')
 def step_when_admin_registers_member(context):
     # Cria Admin se não existir
     if not hasattr(context, 'admin'):
