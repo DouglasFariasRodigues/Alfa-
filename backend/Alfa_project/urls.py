@@ -1,5 +1,5 @@
 """
-Configuração de URL para o projeto Alfa_project.
+Configuração de URL para o projeto alfa_project.
 
 A lista `urlpatterns` roteia URLs para views. Para mais informações, veja:
     https://docs.djangoproject.com/en/5.2/topics/http/urls/
