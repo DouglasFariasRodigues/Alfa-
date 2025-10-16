@@ -145,6 +145,21 @@ class FotoPostagem(models.Model):
     descricao = models.CharField(max_length=255, blank=True, null=True)
     data_upload = models.DateTimeField(auto_now_add=True)
 
+class Comentario(models.Model):
+    evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='comentarios', blank=True, null=True)
+    postagem = models.ForeignKey(Postagem, on_delete=models.CASCADE, related_name='comentarios', blank=True, null=True)
+    autor = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='comentarios')
+    conteudo = models.TextField()
+    data_criacao = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(evento__isnull=False) | models.Q(postagem__isnull=False),
+                name='comentario_deve_ter_evento_ou_postagem'
+            )
+        ]
+
 
 
 class ONG(models.Model):

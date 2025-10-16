@@ -33,4 +33,5 @@ urlpatterns = [
     path('api/transacoes/', views.transacao_create, name='transacao_create'),
     path('api/eventos/', views.evento_create, name='evento_create'),
     path('api/posts/', views.postagem_create, name='postagem_create'),
+    path('api/comentarios/', views.comentario_create, name='comentario_create'),
 ]

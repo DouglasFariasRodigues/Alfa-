@@ -4,7 +4,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from .models import Transferencia, Membro, Transacao, Evento, Postagem, Usuario, Admin
+from .models import Transferencia, Membro, Transacao, Evento, Postagem, Usuario, Admin, Comentario
 from io import BytesIO
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -181,4 +181,52 @@ def postagem_create(request):
         return JsonResponse({
             'success': False,
             'message': f'Erro ao criar postagem: {str(e)}'
+        }, status=400)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def comentario_create(request):
+    try:
+        data = request.data
+
+        # Usar o usuário autenticado via JWT
+        user = request.user
+        usuario = Usuario.objects.filter(user_ptr=user).first()
+        if not usuario:
+            return JsonResponse({
+                'success': False,
+                'message': 'Usuário não encontrado'
+            }, status=404)
+
+        # Verificar se evento ou postagem foi fornecido
+        evento_id = data.get('evento_id')
+        postagem_id = data.get('postagem_id')
+
+        if not evento_id and not postagem_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'Deve fornecer evento_id ou postagem_id'
+            }, status=400)
+
+        if evento_id and postagem_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'Não pode comentar em evento e postagem ao mesmo tempo'
+            }, status=400)
+
+        comentario = Comentario.objects.create(
+            evento_id=evento_id if evento_id else None,
+            postagem_id=postagem_id if postagem_id else None,
+            autor=usuario,
+            conteudo=data['conteudo']
+        )
+        return JsonResponse({
+            'success': True,
+            'message': 'Comentário criado com sucesso!',
+            'comentario_id': comentario.id
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao criar comentário: {str(e)}'
         }, status=400)
