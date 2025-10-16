@@ -191,7 +191,7 @@ def comentario_create(request):
 
         # Usar o usuário autenticado via JWT
         user = request.user
-        usuario = Usuario.objects.filter(user_ptr=user).first()
+        usuario = Usuario.objects.filter(id=user.id).first()
         if not usuario:
             return JsonResponse({
                 'success': False,
@@ -213,6 +213,24 @@ def comentario_create(request):
                 'success': False,
                 'message': 'Não pode comentar em evento e postagem ao mesmo tempo'
             }, status=400)
+
+        # Verificar se o evento ou postagem existe
+        if evento_id:
+            try:
+                Evento.objects.get(id=evento_id)
+            except Evento.DoesNotExist:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Evento não encontrado'
+                }, status=404)
+        elif postagem_id:
+            try:
+                Postagem.objects.get(id=postagem_id)
+            except Postagem.DoesNotExist:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Postagem não encontrada'
+                }, status=404)
 
         comentario = Comentario.objects.create(
             evento_id=evento_id if evento_id else None,
