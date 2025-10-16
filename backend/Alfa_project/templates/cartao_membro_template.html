@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; width: 300px; height: 200px; border: 1px solid #000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .header { text-align: center; margin-bottom: 10px; }
+        .photo { width: 80px; height: 80px; border-radius: 50%; margin-bottom: 10px; }
+        .info { text-align: center; }
+        .footer { text-align: center; font-size: 10px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Cartão de Membro</h2>
+        <h3>Igreja Alfa</h3>
+    </div>
+    <img src="{{ membro.imagem.url }}" alt="Foto do Membro" class="photo" onerror="this.style.display='none'">
+    <div class="info">
+        <p><strong>Nome:</strong> {{ membro.nome }}</p>
+        <p><strong>CPF:</strong> {{ membro.cpf }}</p>
+        <p><strong>Data de Nascimento:</strong> {{ membro.data_nascimento }}</p>
+        <p><strong>Status:</strong> {{ membro.get_status_display }}</p>
+    </div>
+    <div class="footer">
+        <p>Valido até: {{ membro.created_at|date:"d/m/Y" }}</p>
+    </div>
+</body>
+</html>

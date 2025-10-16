@@ -15,8 +15,22 @@ Incluindo outra URLconf
     2. Adicione uma URL a urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+
+from django.urls import path, include
+from app_Alfa import views
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/gerar-pdf-transferencia/<int:transferencia_id>/', views.gerar_pdf_transferencia, name='gerar_pdf_transferencia'),
+    path('api/gerar-cartao-membro/<int:membro_id>/', views.gerar_cartao_membro, name='gerar_cartao_membro'),
+    path('api/transacoes/', views.transacao_create, name='transacao_create'),
+    path('api/eventos/', views.evento_create, name='evento_create'),
+    path('api/posts/', views.postagem_create, name='postagem_create'),
 ]

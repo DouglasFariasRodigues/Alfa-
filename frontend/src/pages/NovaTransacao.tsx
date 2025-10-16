@@ -26,15 +26,49 @@ export default function NovaTransacao() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aqui integraria com o backend
-    const tipoTexto = formData.tipo === "entrada" ? "receita" : "despesa";
-    toast({
-      title: `${tipoTexto.charAt(0).toUpperCase() + tipoTexto.slice(1)} registrada com sucesso!`,
-      description: `Transação de R$ ${formData.valor} foi adicionada.`,
-    });
-    navigate("/financas");
+
+    try {
+      const response = await fetch('http://localhost:8000/api/transacoes/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tipo: formData.tipo,
+          categoria: formData.categoria,
+          valor: parseFloat(formData.valor),
+          data: formData.data,
+          descricao: formData.descricao,
+          metodoPagamento: formData.metodoPagamento,
+          observacoes: formData.observacoes,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const tipoTexto = formData.tipo === "entrada" ? "receita" : "despesa";
+        toast({
+          title: `${tipoTexto.charAt(0).toUpperCase() + tipoTexto.slice(1)} registrada com sucesso!`,
+          description: `Transação de R$ ${formData.valor} foi adicionada.`,
+        });
+        navigate("/financas");
+      } else {
+        toast({
+          title: "Erro ao registrar transação",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro de conexão",
+        description: "Não foi possível conectar ao servidor. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const categoriesReceita = [

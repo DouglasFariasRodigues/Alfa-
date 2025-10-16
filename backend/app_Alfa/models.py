@@ -23,11 +23,22 @@ class BaseModel(models.Model):
         
     def hard_delete(self, **kwargs):
         super(BaseModel, self).delete(**kwargs)
+class Cargo(models.Model):
+    nome = models.CharField(max_length=100, unique=True)
+    descricao = models.TextField(blank=True, null=True)
+    criado_por = models.ForeignKey('Admin', on_delete=models.SET_NULL, null=True, related_name='cargos_criados')
+    data_criacao = models.DateTimeField(auto_now_add=True)
+
+    # Permissões
+    pode_fazer_postagens = models.BooleanField(default=False, help_text="Pode criar postagens")
+    pode_registrar_dizimos = models.BooleanField(default=False, help_text="Pode registrar dízimos")
+    pode_registrar_ofertas = models.BooleanField(default=False, help_text="Pode registrar ofertas")
+
 class Admin(models.Model):
     nome = models.CharField(max_length=100)
     email = models.EmailField()
     telefone = models.CharField(max_length=15, blank=True, null=True)
-    cargo = models.CharField(max_length=50, blank=True, null=True)
+    cargo = models.ForeignKey(Cargo, on_delete=models.SET_NULL, null=True, blank=True, related_name='admins')
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
@@ -38,7 +49,7 @@ class Usuario(models.Model):
     username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(unique=True)
     telefone = models.CharField(max_length=15, blank=True, null=True)
-    cargo = models.CharField(max_length=50, blank=True, null=True)
+    cargo = models.ForeignKey(Cargo, on_delete=models.SET_NULL, null=True, blank=True, related_name='usuarios')
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
@@ -134,11 +145,7 @@ class FotoPostagem(models.Model):
     descricao = models.CharField(max_length=255, blank=True, null=True)
     data_upload = models.DateTimeField(auto_now_add=True)
 
-class Cargo(models.Model):
-    nome = models.CharField(max_length=100, unique=True)
-    descricao = models.TextField(blank=True, null=True)
-    criado_por = models.ForeignKey(Admin, on_delete=models.SET_NULL, null=True, related_name='cargos_criados')
-    data_criacao = models.DateTimeField(auto_now_add=True)
+
 
 class ONG(models.Model):
     nome = models.CharField(max_length=200)
@@ -164,3 +171,28 @@ class DistribuicaoOferta(models.Model):
     meio_envio = models.CharField(max_length=100, blank=True, null=True)
     data_envio = models.DateField(blank=True, null=True)
     comprovante = models.FileField(upload_to='comprovantes_ofertas/', blank=True, null=True)
+
+class Transferencia(BaseModel):
+    membro = models.ForeignKey(Membro, on_delete=models.CASCADE)
+    igreja_origem = models.ForeignKey(Igreja, on_delete=models.CASCADE, related_name='transferencias_origem')
+    igreja_destino = models.ForeignKey(Igreja, on_delete=models.CASCADE, related_name='transferencias_destino')
+    data_transferencia = models.DateField()
+    motivo = models.TextField(blank=True)
+    gerado_por = models.ForeignKey(Admin, on_delete=models.SET_NULL, null=True, related_name='transferencias_geradas')
+
+class Transacao(BaseModel):
+    ENTRADA = 'entrada'
+    SAIDA = 'saida'
+    TIPO_CHOICES = [
+        (ENTRADA, 'Entrada'),
+        (SAIDA, 'Saída'),
+    ]
+
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
+    categoria = models.CharField(max_length=100)
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    data = models.DateField()
+    descricao = models.TextField(blank=True, null=True)
+    metodo_pagamento = models.CharField(max_length=50, blank=True, null=True)
+    observacoes = models.TextField(blank=True, null=True)
+    registrado_por = models.ForeignKey(Admin, on_delete=models.SET_NULL, null=True, related_name='transacoes_registradas')

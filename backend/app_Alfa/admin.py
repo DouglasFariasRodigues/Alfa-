@@ -7,15 +7,25 @@ from .models import (Admin, Usuario, Membro, Grupo, Doacao, Igreja, Evento,
 
 @admin.register(Admin)
 class AdminAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'email', 'cargo', 'is_active', 'is_staff', 'date_joined')
-    search_fields = ('nome', 'email', 'cargo')
+    list_display = ('nome', 'email', 'get_cargo_nome', 'is_active', 'is_staff', 'date_joined')
+    search_fields = ('nome', 'email', 'cargo__nome')
     list_filter = ('is_active', 'is_staff', 'cargo')
+
+    def get_cargo_nome(self, obj):
+        return obj.cargo.nome if obj.cargo else 'Sem cargo'
+    get_cargo_nome.short_description = 'Cargo'
+    get_cargo_nome.admin_order_field = 'cargo__nome'
 
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'cargo', 'is_active', 'is_staff', 'date_joined')
-    search_fields = ('username', 'email', 'cargo')
+    list_display = ('username', 'email', 'get_cargo_nome', 'is_active', 'is_staff', 'date_joined')
+    search_fields = ('username', 'email', 'cargo__nome')
     list_filter = ('is_active', 'is_staff', 'cargo')
+
+    def get_cargo_nome(self, obj):
+        return obj.cargo.nome if obj.cargo else 'Sem cargo'
+    get_cargo_nome.short_description = 'Cargo'
+    get_cargo_nome.admin_order_field = 'cargo__nome'
 
 @admin.register(Membro)
 class MembroAdmin(admin.ModelAdmin):
@@ -71,9 +81,10 @@ class FotoPostagemAdmin(admin.ModelAdmin):
 
 @admin.register(Cargo)
 class CargoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'criado_por', 'data_criacao')
+    list_display = ('nome', 'criado_por', 'data_criacao', 'pode_fazer_postagens', 'pode_registrar_dizimos', 'pode_registrar_ofertas')
     search_fields = ('nome', 'descricao')
-    list_filter = ('data_criacao',)
+    list_filter = ('data_criacao', 'pode_fazer_postagens', 'pode_registrar_dizimos', 'pode_registrar_ofertas')
+    list_editable = ('pode_fazer_postagens', 'pode_registrar_dizimos', 'pode_registrar_ofertas')
 
 @admin.register(ONG)
 class ONGAdmin(admin.ModelAdmin):
