@@ -3,7 +3,7 @@ Steps para testar acesso completo do Admin.
 Testa se o Admin consegue acessar todas as áreas da aplicação após login.
 """
 from behave import given, when, then
-from app_alfa.models import Admin, Oferta, Evento, FotoEvento, Usuario
+from app_Alfa.models import Admin, Oferta, Evento, FotoEvento, Usuario
 from decimal import Decimal
 from django.utils import timezone
 

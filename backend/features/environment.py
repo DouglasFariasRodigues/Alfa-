@@ -8,7 +8,7 @@ django.setup()
 
 def before_scenario(context, scenario):
     """Limpar o banco de dados antes de cada cenário"""
-    from app_alfa.models import (Admin, Usuario, Evento, FotoEvento, Membro,
+    from app_Alfa.models import (Admin, Usuario, Evento, FotoEvento, Membro,
                                   Postagem, FotoPostagem, Cargo, ONG, Oferta, DistribuicaoOferta,
                                   DocumentoMembro, Grupo, Doacao)
     

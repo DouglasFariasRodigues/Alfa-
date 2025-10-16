@@ -3,7 +3,7 @@ Steps para gerenciamento de status dos membros.
 Testa gerenciamento de membros ativos, inativos, falecidos e que deixaram a fé.
 """
 from behave import given, when, then
-from app_alfa.models import Admin, Membro
+from app_Alfa.models import Admin, Membro
 
 # Passo: Criar múltiplos membros ativos
 @given('existem {quantidade:d} membros ativos cadastrados')

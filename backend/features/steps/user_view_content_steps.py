@@ -3,7 +3,7 @@ Steps para visualização de conteúdo por usuários/membros.
 Testa se membros conseguem ver fotos de eventos e transparência das ofertas.
 """
 from behave import given, when, then
-from app_alfa.models import Usuario, Evento, FotoEvento, Postagem, FotoPostagem, Admin, Oferta, ONG, DistribuicaoOferta, Membro
+from app_Alfa.models import Usuario, Evento, FotoEvento, Postagem, FotoPostagem, Admin, Oferta, ONG, DistribuicaoOferta, Membro
 from django.utils import timezone
 from decimal import Decimal
 
