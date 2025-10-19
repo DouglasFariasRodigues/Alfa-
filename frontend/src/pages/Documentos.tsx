@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Download, Plus, Search, Filter, Calendar, User } from "lucide-react";
+import { FileText, Download, Plus, Search, Filter, Calendar, User, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -11,7 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useToast } from "@/hooks/use-toast";
 
+// Mock data - em uma implementação real, isso viria da API
 const documentos = [
   {
     id: 1,
@@ -21,7 +25,8 @@ const documentos = [
     membro: "Maria Santos",
     dataGeracao: "2024-01-03",
     status: "Gerado",
-    tamanho: "245 KB"
+    tamanho: "245 KB",
+    url: "/documents/certificado-batismo-maria-santos.pdf"
   },
   {
     id: 2,
@@ -30,270 +35,382 @@ const documentos = [
     categoria: "Transferência",
     membro: "João Silva",
     dataGeracao: "2024-01-02",
-    status: "Enviado",
-    tamanho: "189 KB"
+    status: "Gerado",
+    tamanho: "189 KB",
+    url: "/documents/carta-transferencia-joao-silva.pdf"
   },
   {
     id: 3,
-    nome: "Relatório Financeiro - Dezembro 2023",
+    nome: "Relatório Financeiro - Janeiro 2024",
     tipo: "Relatório",
     categoria: "Financeiro",
-    membro: "-",
-    dataGeracao: "2024-01-01",
+    membro: null,
+    dataGeracao: "2024-02-01",
     status: "Gerado",
-    tamanho: "2.1 MB"
+    tamanho: "1.2 MB",
+    url: "/documents/relatorio-financeiro-janeiro-2024.pdf"
   },
   {
     id: 4,
-    nome: "Certificado de Apresentação - Ana Costa",
-    tipo: "Certificado",
-    categoria: "Apresentação",
-    membro: "Ana Costa",
-    dataGeracao: "2023-12-30",
+    nome: "Lista de Membros - Ativos",
+    tipo: "Lista",
+    categoria: "Membros",
+    membro: null,
+    dataGeracao: "2024-01-31",
     status: "Gerado",
-    tamanho: "198 KB"
+    tamanho: "456 KB",
+    url: "/documents/lista-membros-ativos.pdf"
+  },
+  {
+    id: 5,
+    nome: "Certificado de Batismo - Ana Costa",
+    tipo: "Certificado",
+    categoria: "Batismo",
+    membro: "Ana Costa",
+    dataGeracao: "2024-01-28",
+    status: "Pendente",
+    tamanho: "-",
+    url: null
   }
 ];
 
-const tiposDocumento = [
-  { nome: "Certificados", quantidade: 45, cor: "gradient-primary" },
-  { nome: "Cartas", quantidade: 23, cor: "bg-blue-500" },
-  { nome: "Relatórios", quantidade: 12, cor: "bg-green-500" },
-  { nome: "Declarações", quantidade: 8, cor: "bg-orange-500" }
-];
+const tiposDocumento = ["Todos", "Certificado", "Carta", "Relatório", "Lista"];
+const categorias = ["Todas", "Batismo", "Transferência", "Financeiro", "Membros"];
+const status = ["Todos", "Gerado", "Pendente", "Erro"];
 
 export default function Documentos() {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Gerado":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case "Enviado":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-      case "Pendente":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+  const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filtroTipo, setFiltroTipo] = useState("Todos");
+  const [filtroCategoria, setFiltroCategoria] = useState("Todas");
+  const [filtroStatus, setFiltroStatus] = useState("Todos");
+  const [loading, setLoading] = useState(false);
+
+  // Filtrar documentos
+  const documentosFiltrados = documentos.filter(doc => {
+    const matchSearch = doc.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       (doc.membro && doc.membro.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchTipo = filtroTipo === "Todos" || doc.tipo === filtroTipo;
+    const matchCategoria = filtroCategoria === "Todas" || doc.categoria === filtroCategoria;
+    const matchStatus = filtroStatus === "Todos" || doc.status === filtroStatus;
+    
+    return matchSearch && matchTipo && matchCategoria && matchStatus;
+  });
+
+  const handleDownload = async (documento: any) => {
+    if (!documento.url) {
+      toast({
+        title: "Documento não disponível",
+        description: "Este documento ainda não foi gerado ou está em processamento.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Simular download
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Download iniciado",
+        description: `Baixando ${documento.nome}...`,
+      });
+      
+      // Em uma implementação real, aqui seria o download real do arquivo
+      console.log(`Downloading: ${documento.url}`);
+    } catch (error) {
+      toast({
+        title: "Erro no download",
+        description: "Não foi possível baixar o documento. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getTipoColor = (tipo: string) => {
-    switch (tipo) {
-      case "Certificado":
-        return "gradient-primary text-white";
-      case "Carta":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-      case "Relatório":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case "Declaração":
-        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+  const handleGerarDocumento = async (tipo: string) => {
+    setLoading(true);
+    try {
+      // Simular geração de documento
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast({
+        title: "Documento gerado!",
+        description: `O ${tipo} foi gerado com sucesso.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao gerar documento",
+        description: "Não foi possível gerar o documento. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Gerado":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+      case "Pendente":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
+      case "Erro":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Documentos</h1>
           <p className="text-muted-foreground">
-            Gerencie certificados, cartas e relatórios automatizados
+            Gerencie e baixe documentos da igreja
           </p>
         </div>
-        <Button className="gradient-primary text-white shadow-elegant hover:opacity-90">
-          <Plus className="mr-2 h-4 w-4" />
-          Gerar Documento
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => handleGerarDocumento("Relatório Financeiro")} disabled={loading}>
+            {loading ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Plus className="h-4 w-4 mr-2" />
+            )}
+            Gerar Relatório
+          </Button>
+          <Button variant="outline" onClick={() => handleGerarDocumento("Lista de Membros")} disabled={loading}>
+            {loading ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4 mr-2" />
+            )}
+            Gerar Lista
+          </Button>
+        </div>
       </div>
 
-      {/* Stats */}
+      {/* Estatísticas */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="shadow-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total de Documentos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">88</div>
-            <p className="text-xs text-green-600">+12 este mês</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Certificados Emitidos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">45</div>
-            <p className="text-xs text-muted-foreground">51% do total</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Cartas Enviadas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">23</div>
-            <p className="text-xs text-green-600">+5 esta semana</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Relatórios Gerados</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">Mensais e anuais</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-4">
-        {/* Document Types */}
-        <Card className="shadow-card">
-          <CardHeader>
-            <CardTitle>Tipos de Documento</CardTitle>
-            <CardDescription>
-              Distribuição por categoria
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {tiposDocumento.map((tipo, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{tipo.nome}</span>
-                  <span className="text-muted-foreground">{tipo.quantidade}</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full transition-all ${
-                      tipo.cor.startsWith('gradient') 
-                        ? tipo.cor 
-                        : `${tipo.cor}`
-                    }`}
-                    style={{ width: `${(tipo.quantidade / 88) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
-        <Card className="shadow-card lg:col-span-3">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Documentos Recentes</CardTitle>
-                <CardDescription>
-                  Histórico de documentos gerados automaticamente
-                </CardDescription>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar documentos..."
-                    className="pl-8 w-64"
-                  />
-                </div>
-                <Button variant="outline" size="sm">
-                  <Filter className="mr-2 h-4 w-4" />
-                  Filtros
-                </Button>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <FileText className="h-8 w-8 text-muted-foreground" />
+              <div className="ml-4">
+                <p className="text-2xl font-bold">{documentos.length}</p>
+                <p className="text-sm text-muted-foreground">Total de Documentos</p>
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Documento</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Membro</TableHead>
-                  <TableHead>Data de Geração</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Tamanho</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {documentos.map((doc) => (
-                  <TableRow key={doc.id} className="hover:bg-accent/50 transition-smooth">
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <span className="line-clamp-1">{doc.nome}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getTipoColor(doc.tipo)}>
-                        {doc.tipo}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {doc.membro !== "-" && <User className="h-3 w-3 text-muted-foreground" />}
-                        <span>{doc.membro}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-3 w-3 text-muted-foreground" />
-                        <span>{new Date(doc.dataGeracao).toLocaleDateString('pt-BR')}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(doc.status)}>
-                        {doc.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{doc.tamanho}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
-                        <Button variant="outline" size="sm">
-                          <Download className="mr-1 h-3 w-3" />
-                          Download
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          Ver
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <Download className="h-8 w-8 text-green-600" />
+              <div className="ml-4">
+                <p className="text-2xl font-bold">
+                  {documentos.filter(d => d.status === "Gerado").length}
+                </p>
+                <p className="text-sm text-muted-foreground">Disponíveis</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <Calendar className="h-8 w-8 text-yellow-600" />
+              <div className="ml-4">
+                <p className="text-2xl font-bold">
+                  {documentos.filter(d => d.status === "Pendente").length}
+                </p>
+                <p className="text-sm text-muted-foreground">Pendentes</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <User className="h-8 w-8 text-blue-600" />
+              <div className="ml-4">
+                <p className="text-2xl font-bold">
+                  {documentos.filter(d => d.membro).length}
+                </p>
+                <p className="text-sm text-muted-foreground">Documentos de Membros</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Quick Generate */}
-      <Card className="shadow-card">
+      {/* Filtros */}
+      <Card>
         <CardHeader>
-          <CardTitle>Geração Rápida de Documentos</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filtros
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Buscar</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Nome do documento ou membro..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tipo</label>
+              <Select value={filtroTipo} onValueChange={setFiltroTipo}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {tiposDocumento.map((tipo) => (
+                    <SelectItem key={tipo} value={tipo}>
+                      {tipo}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Categoria</label>
+              <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {categorias.map((categoria) => (
+                    <SelectItem key={categoria} value={categoria}>
+                      {categoria}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Status</label>
+              <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {status.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Lista de Documentos */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Documentos</CardTitle>
           <CardDescription>
-            Crie documentos automatizados com apenas alguns cliques
+            {documentosFiltrados.length} documento(s) encontrado(s)
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Button variant="outline" className="h-20 flex-col space-y-2">
-              <FileText className="h-6 w-6" />
-              <span>Certificado de Batismo</span>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col space-y-2">
-              <FileText className="h-6 w-6" />
-              <span>Carta de Transferência</span>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col space-y-2">
-              <FileText className="h-6 w-6" />
-              <span>Relatório Financeiro</span>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col space-y-2">
-              <FileText className="h-6 w-6" />
-              <span>Declaração de Membro</span>
-            </Button>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Categoria</TableHead>
+                <TableHead>Membro</TableHead>
+                <TableHead>Data de Geração</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Tamanho</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {documentosFiltrados.map((documento) => (
+                <TableRow key={documento.id}>
+                  <TableCell className="font-medium">
+                    {documento.nome}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{documento.tipo}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">{documento.categoria}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    {documento.membro ? (
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        {documento.membro}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      {formatDate(documento.dataGeracao)}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getStatusColor(documento.status)}>
+                      {documento.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{documento.tamanho}</TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownload(documento)}
+                      disabled={!documento.url || loading}
+                    >
+                      {loading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          
+          {documentosFiltrados.length === 0 && (
+            <div className="text-center py-8">
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Nenhum documento encontrado</h3>
+              <p className="text-muted-foreground">
+                Tente ajustar os filtros ou gerar novos documentos.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -76,7 +76,7 @@ Sistema completo de gerenciamento para igrejas, desenvolvido com **Django REST F
 
 ### 1. Clone o Repositório
 ```bash
-git clone <url-do-repositorio>
+git clone <https://github.com/DouglasFariasRodigues/Alfa->
 cd Alfa-
 ```
 

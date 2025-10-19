@@ -119,15 +119,28 @@ class EventoViewSet(viewsets.ModelViewSet):
         return queryset.order_by('-data')
     
     def perform_create(self, serializer):
-        # Criar usuário padrão se não existir
-        organizador, created = Usuario.objects.get_or_create(
-            username='admin',
-            defaults={
-                'email': 'admin@igreja.com',
-                'is_active': True,
-                'is_staff': True
-            }
-        )
+        # Usar o usuário autenticado como organizador
+        try:
+            # Tentar encontrar o usuário correspondente ao admin autenticado
+            admin = Admin.objects.get(email=self.request.user.username)
+            organizador, created = Usuario.objects.get_or_create(
+                username=admin.email,
+                defaults={
+                    'email': admin.email,
+                    'is_active': True,
+                    'is_staff': True
+                }
+            )
+        except Admin.DoesNotExist:
+            # Usuário padrão se não encontrar admin
+            organizador, created = Usuario.objects.get_or_create(
+                username='admin',
+                defaults={
+                    'email': 'admin@igreja.com',
+                    'is_active': True,
+                    'is_staff': True
+                }
+            )
         serializer.save(organizador=organizador)
 
 class PostagemViewSet(viewsets.ModelViewSet):

@@ -5,36 +5,94 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Save, Calendar } from "lucide-react";
+import { ArrowLeft, Save, Calendar, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useCreateEvento } from "@/hooks/useEventos";
 
 export default function NovoEvento() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const createEventoMutation = useCreateEvento();
+  
   const [formData, setFormData] = useState({
     titulo: "",
     descricao: "",
     data: "",
     hora: "",
     local: "",
-    categoria: "",
-    capacidade: "",
     observacoes: ""
   });
+  
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Limpar erro do campo quando usuário começar a digitar
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: "" }));
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.titulo.trim()) {
+      newErrors.titulo = "Título é obrigatório";
+    }
+    if (!formData.data.trim()) {
+      newErrors.data = "Data é obrigatória";
+    }
+    if (!formData.hora.trim()) {
+      newErrors.hora = "Hora é obrigatória";
+    }
+    if (!formData.local.trim()) {
+      newErrors.local = "Local é obrigatório";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aqui integraria com o backend
-    toast({
-      title: "Evento criado com sucesso!",
-      description: `${formData.titulo} foi adicionado ao calendário.`,
-    });
-    navigate("/eventos");
+
+    if (!validateForm()) {
+      toast({
+        title: "Erro de validação",
+        description: "Por favor, corrija os erros no formulário.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Combinar data e hora para o formato esperado pela API
+      const dataHora = `${formData.data}T${formData.hora}:00`;
+      
+      // Preparar dados para envio, removendo campos vazios
+      const eventoData = {
+        titulo: formData.titulo,
+        descricao: formData.descricao || '',
+        data: dataHora,
+        local: formData.local,
+        observacoes: formData.observacoes || ''
+      };
+      
+      await createEventoMutation.mutateAsync(eventoData);
+      
+      toast({
+        title: "Evento criado com sucesso!",
+        description: `${formData.titulo} foi adicionado ao calendário.`,
+      });
+      navigate("/eventos");
+    } catch (error: any) {
+      toast({
+        title: "Erro ao criar evento",
+        description: error.response?.data?.message || "Erro inesperado. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -75,24 +133,24 @@ export default function NovoEvento() {
                 id="titulo"
                 value={formData.titulo}
                 onChange={(e) => handleInputChange("titulo", e.target.value)}
-                placeholder="Ex: Culto de Domingo"
-                required
+                placeholder="Ex: Culto de Domingo, Escola Bíblica, etc."
+                className={errors.titulo ? "border-red-500" : ""}
               />
+              {errors.titulo && <p className="text-sm text-red-500">{errors.titulo}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="descricao">Descrição *</Label>
+              <Label htmlFor="descricao">Descrição</Label>
               <Textarea
                 id="descricao"
                 value={formData.descricao}
                 onChange={(e) => handleInputChange("descricao", e.target.value)}
-                placeholder="Descreva o evento..."
-                rows={3}
-                required
+                placeholder="Descreva o evento, objetivos, público-alvo..."
+                rows={4}
               />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="data">Data *</Label>
                 <Input
@@ -100,61 +158,34 @@ export default function NovoEvento() {
                   type="date"
                   value={formData.data}
                   onChange={(e) => handleInputChange("data", e.target.value)}
-                  required
+                  className={errors.data ? "border-red-500" : ""}
                 />
+                {errors.data && <p className="text-sm text-red-500">{errors.data}</p>}
               </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="hora">Horário *</Label>
+                <Label htmlFor="hora">Hora *</Label>
                 <Input
                   id="hora"
                   type="time"
                   value={formData.hora}
                   onChange={(e) => handleInputChange("hora", e.target.value)}
-                  required
+                  className={errors.hora ? "border-red-500" : ""}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="capacidade">Capacidade</Label>
-                <Input
-                  id="capacidade"
-                  type="number"
-                  value={formData.capacidade}
-                  onChange={(e) => handleInputChange("capacidade", e.target.value)}
-                  placeholder="100"
-                />
+                {errors.hora && <p className="text-sm text-red-500">{errors.hora}</p>}
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="local">Local *</Label>
-                <Input
-                  id="local"
-                  value={formData.local}
-                  onChange={(e) => handleInputChange("local", e.target.value)}
-                  placeholder="Templo Principal"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="categoria">Categoria *</Label>
-                <Select onValueChange={(value) => handleInputChange("categoria", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a categoria..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Culto">Culto</SelectItem>
-                    <SelectItem value="Oração">Reunião de Oração</SelectItem>
-                    <SelectItem value="Estudo">Estudo Bíblico</SelectItem>
-                    <SelectItem value="Retiro">Retiro</SelectItem>
-                    <SelectItem value="Conferência">Conferência</SelectItem>
-                    <SelectItem value="Casamento">Casamento</SelectItem>
-                    <SelectItem value="Batismo">Batismo</SelectItem>
-                    <SelectItem value="Evento Social">Evento Social</SelectItem>
-                    <SelectItem value="Outro">Outro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="local">Local *</Label>
+              <Input
+                id="local"
+                value={formData.local}
+                onChange={(e) => handleInputChange("local", e.target.value)}
+                placeholder="Ex: Templo Principal, Salão de Eventos, etc."
+                className={errors.local ? "border-red-500" : ""}
+              />
+              {errors.local && <p className="text-sm text-red-500">{errors.local}</p>}
             </div>
 
             <div className="space-y-2">
@@ -163,22 +194,35 @@ export default function NovoEvento() {
                 id="observacoes"
                 value={formData.observacoes}
                 onChange={(e) => handleInputChange("observacoes", e.target.value)}
-                placeholder="Informações adicionais sobre o evento..."
+                placeholder="Informações adicionais, materiais necessários, etc."
                 rows={3}
               />
             </div>
 
-            <div className="flex gap-4 pt-4">
-              <Button type="submit" className="gradient-primary text-white shadow-elegant hover:opacity-90">
-                <Save className="mr-2 h-4 w-4" />
-                Criar Evento
-              </Button>
+            <div className="flex justify-end gap-3 pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => navigate("/eventos")}
               >
                 Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createEventoMutation.isPending}
+                className="flex items-center gap-2"
+              >
+                {createEventoMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Criar Evento
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>

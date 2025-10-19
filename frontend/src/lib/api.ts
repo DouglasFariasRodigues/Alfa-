@@ -28,16 +28,19 @@ export interface Membro {
   id: number;
   nome: string;
   cpf: string;
-  rg: string;
-  data_nascimento: string;
+  rg?: string;
+  data_nascimento?: string;
   telefone: string;
   email: string;
-  endereco: string;
-  foto: string;
+  endereco?: string;
+  foto?: string;
   status: 'ativo' | 'inativo' | 'falecido' | 'afastado';
-  data_batismo: string;
-  igreja_origem: string;
-  cadastrado_por_nome: string;
+  data_batismo?: string;
+  igreja_origem?: string;
+  observacoes?: string;
+  cadastrado_por_nome?: string;
+  cargo?: number;
+  cargo_nome?: string;
   created_at: string;
   updated_at: string;
 }
@@ -45,15 +48,16 @@ export interface Membro {
 export interface MembroCreate {
   nome: string;
   cpf: string;
-  rg: string;
-  data_nascimento: string;
+  rg?: string;
+  data_nascimento?: string;
   telefone: string;
   email: string;
-  endereco: string;
+  endereco?: string;
   foto?: File;
   status: 'ativo' | 'inativo' | 'falecido' | 'afastado';
-  data_batismo: string;
-  igreja_origem: string;
+  data_batismo?: string;
+  igreja_origem?: string;
+  observacoes?: string;
 }
 
 // Tipos para eventos
@@ -63,16 +67,17 @@ export interface Evento {
   descricao: string;
   data: string;
   local: string;
+  observacoes?: string;
   organizador_nome: string;
-  foto: string;
+  foto?: string;
 }
 
 export interface EventoCreate {
   titulo: string;
   descricao: string;
   data: string;
-  hora: string;
   local: string;
+  observacoes?: string;
   foto?: File;
 }
 
@@ -263,36 +268,16 @@ class ApiClient {
   }
 
   async createMembro(membro: MembroCreate): Promise<Membro> {
-    const formData = new FormData();
-    Object.entries(membro).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formData.append(key, value.toString());
-      }
-    });
-
     return this.request<Membro>('/membros/', {
       method: 'POST',
-      headers: {
-        // Remover Content-Type para FormData
-      },
-      body: formData,
+      body: JSON.stringify(membro),
     });
   }
 
   async updateMembro(id: number, membro: Partial<MembroCreate>): Promise<Membro> {
-    const formData = new FormData();
-    Object.entries(membro).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formData.append(key, value.toString());
-      }
-    });
-
     return this.request<Membro>(`/membros/${id}/`, {
       method: 'PATCH',
-      headers: {
-        // Remover Content-Type para FormData
-      },
-      body: formData,
+      body: JSON.stringify(membro),
     });
   }
 
@@ -318,36 +303,16 @@ class ApiClient {
   }
 
   async createEvento(evento: EventoCreate): Promise<Evento> {
-    const formData = new FormData();
-    Object.entries(evento).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formData.append(key, value.toString());
-      }
-    });
-
     return this.request<Evento>('/eventos/', {
       method: 'POST',
-      headers: {
-        // Remover Content-Type para FormData
-      },
-      body: formData,
+      body: JSON.stringify(evento),
     });
   }
 
   async updateEvento(id: number, evento: Partial<EventoCreate>): Promise<Evento> {
-    const formData = new FormData();
-    Object.entries(evento).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formData.append(key, value.toString());
-      }
-    });
-
     return this.request<Evento>(`/eventos/${id}/`, {
       method: 'PATCH',
-      headers: {
-        // Remover Content-Type para FormData
-      },
-      body: formData,
+      body: JSON.stringify(evento),
     });
   }
 
