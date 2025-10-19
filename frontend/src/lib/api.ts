@@ -421,6 +421,44 @@ class ApiClient {
       method: 'DELETE',
     });
   }
+
+  // Métodos para cargos
+  async getCargos(params?: { search?: string; pode_fazer_postagens?: boolean; pode_registrar_dizimos?: boolean; pode_registrar_ofertas?: boolean }): Promise<any[]> {
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.pode_fazer_postagens !== undefined) queryParams.append('pode_fazer_postagens', params.pode_fazer_postagens.toString());
+    if (params?.pode_registrar_dizimos !== undefined) queryParams.append('pode_registrar_dizimos', params.pode_registrar_dizimos.toString());
+    if (params?.pode_registrar_ofertas !== undefined) queryParams.append('pode_registrar_ofertas', params.pode_registrar_ofertas.toString());
+    
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/cargos/?${queryString}` : '/cargos/';
+    
+    return this.request<any[]>(endpoint);
+  }
+
+  async getCargo(id: number): Promise<any> {
+    return this.request<any>(`/cargos/${id}/`);
+  }
+
+  async createCargo(cargo: any): Promise<any> {
+    return this.request<any>('/cargos/', {
+      method: 'POST',
+      body: JSON.stringify(cargo),
+    });
+  }
+
+  async updateCargo(id: number, cargo: any): Promise<any> {
+    return this.request<any>(`/cargos/${id}/`, {
+      method: 'PUT',
+      body: JSON.stringify(cargo),
+    });
+  }
+
+  async deleteCargo(id: number): Promise<void> {
+    return this.request<void>(`/cargos/${id}/`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 // Instância singleton da API

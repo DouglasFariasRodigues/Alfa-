@@ -20,6 +20,9 @@ import Financas from "./pages/Financas";
 import NovaTransacao from "./pages/NovaTransacao";
 import Documentos from "./pages/Documentos";
 import Configuracoes from "./pages/Configuracoes";
+import Cargos from "./pages/Cargos";
+import NovoCargo from "./pages/NovoCargo";
+import DetalhesCargo from "./pages/DetalhesCargo";
 import NotFound from "./pages/NotFound";
 // Páginas para membros comuns (visualização)
 import MembrosVisualizacao from "./pages/MembrosVisualizacao";
@@ -107,6 +110,26 @@ const App = () => (
           <Route path="/configuracoes" element={
             <ProtectedRoute>
               <AppLayout><Configuracoes /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/cargos" element={
+            <ProtectedRoute>
+              <AppLayout><Cargos /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/cargos/novo" element={
+            <ProtectedRoute>
+              <AppLayout><NovoCargo /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/cargos/:id" element={
+            <ProtectedRoute>
+              <AppLayout><DetalhesCargo /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/cargos/editar/:id" element={
+            <ProtectedRoute>
+              <AppLayout><NovoCargo /></AppLayout>
             </ProtectedRoute>
           } />
           

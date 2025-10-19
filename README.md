@@ -15,7 +15,6 @@ Sistema completo de gerenciamento para igrejas, desenvolvido com **Django REST F
 - [Dados de Teste](#-dados-de-teste)
 - [Desenvolvimento](#-desenvolvimento)
 - [Testes](#-testes)
-- [Contribuição](#-contribuição)
 
 ## 🚀 Funcionalidades
 
@@ -368,24 +367,4 @@ Acesse `http://localhost:8000/admin/` para gerenciar dados diretamente no banco.
 2. Sirva os arquivos estáticos com Nginx
 3. Configure proxy para API
 
-## 🤝 Contribuição
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-## 📝 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
-
-## 📞 Suporte
-
-Para suporte e dúvidas:
-- Abra uma issue no GitHub
-- Entre em contato com a equipe de desenvolvimento
-
----
-
-**Desenvolvido com ❤️ para a gestão eclesiástica moderna**
