@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Search, Edit, Trash2, Shield, FileText, DollarSign, Gift } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Shield, FileText, DollarSign, Gift, Eye } from 'lucide-react'
+import { usePermissions } from '@/hooks/usePermissions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,6 +19,10 @@ export default function Cargos() {
   const [selectedCargo, setSelectedCargo] = useState<Cargo | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [filters, setFilters] = useState<CargoFilters>({})
+  const { hasPermission, canAccess, isAdmin } = usePermissions()
+  
+  // Verificar se o usuário pode gerenciar cargos
+  const canManageCargos = hasPermission('cargos') || canAccess('cargos') || isAdmin()
 
   const { data: cargos = [], isLoading, error } = useCargos(filters)
   const deleteCargoMutation = useDeleteCargo()
@@ -108,10 +113,12 @@ export default function Cargos() {
             Gerencie os cargos e permissões do sistema
           </p>
         </div>
-        <Button onClick={() => navigate('/cargos/novo')}>
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Cargo
-        </Button>
+        {canManageCargos && (
+          <Button onClick={() => navigate('/cargos/novo')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Cargo
+          </Button>
+        )}
       </div>
 
       {/* Estatísticas */}
@@ -316,23 +323,27 @@ export default function Cargos() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => navigate(`/cargos/${cargo.id}`)}>
-                              <Shield className="h-4 w-4 mr-2" />
+                              <Eye className="h-4 w-4 mr-2" />
                               Ver Detalhes
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => navigate(`/cargos/editar/${cargo.id}`)}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-red-600"
-                              onClick={() => {
-                                setSelectedCargo(cargo)
-                                setShowDeleteDialog(true)
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Excluir
-                            </DropdownMenuItem>
+                            {canManageCargos && (
+                              <>
+                                <DropdownMenuItem onClick={() => navigate(`/cargos/editar/${cargo.id}`)}>
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={() => {
+                                    setSelectedCargo(cargo)
+                                    setShowDeleteDialog(true)
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Excluir
+                                </DropdownMenuItem>
+                              </>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

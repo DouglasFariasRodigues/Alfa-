@@ -30,9 +30,14 @@ class Cargo(models.Model):
     data_criacao = models.DateTimeField(auto_now_add=True)
 
     # Permissões
-    pode_fazer_postagens = models.BooleanField(default=False, help_text="Pode criar postagens")
     pode_registrar_dizimos = models.BooleanField(default=False, help_text="Pode registrar dízimos")
     pode_registrar_ofertas = models.BooleanField(default=False, help_text="Pode registrar ofertas")
+    pode_gerenciar_membros = models.BooleanField(default=False, help_text="Pode gerenciar membros")
+    pode_gerenciar_eventos = models.BooleanField(default=False, help_text="Pode gerenciar eventos")
+    pode_gerenciar_financas = models.BooleanField(default=False, help_text="Pode gerenciar finanças")
+    pode_gerenciar_cargos = models.BooleanField(default=False, help_text="Pode gerenciar cargos")
+    pode_gerenciar_documentos = models.BooleanField(default=False, help_text="Pode gerenciar documentos")
+    pode_visualizar_relatorios = models.BooleanField(default=False, help_text="Pode visualizar relatórios")
 
 class Admin(models.Model):
     nome = models.CharField(max_length=100)
@@ -81,6 +86,7 @@ class Membro(BaseModel):
     dados_completos = models.TextField(blank=True, null=True)  # Campo legado
     foto = models.ImageField(upload_to='membros_fotos/', blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=ATIVO)
+    senha = models.CharField(max_length=128, blank=True, null=True, help_text="Senha para acesso ao sistema")
     
     # Dados da igreja
     data_batismo = models.DateField(blank=True, null=True)
@@ -196,3 +202,22 @@ class Transacao(BaseModel):
     metodo_pagamento = models.CharField(max_length=50, blank=True, null=True)
     observacoes = models.TextField(blank=True, null=True)
     registrado_por = models.ForeignKey('app_alfa.Admin', on_delete=models.SET_NULL, null=True, related_name='transacoes_registradas')
+
+class EventoPresenca(BaseModel):
+    """Modelo para confirmação de presença em eventos"""
+    evento = models.ForeignKey('app_alfa.Evento', on_delete=models.CASCADE, related_name='presencas')
+    membro = models.ForeignKey('app_alfa.Membro', on_delete=models.CASCADE, related_name='presencas_eventos')
+    confirmado = models.BooleanField(default=False)
+    data_confirmacao = models.DateTimeField(auto_now_add=True)
+    observacoes = models.TextField(blank=True, null=True)
+    
+    class Meta:
+        unique_together = ['evento', 'membro']  # Um membro só pode confirmar presença uma vez por evento
+
+class EventoComentario(BaseModel):
+    """Modelo para comentários em eventos"""
+    evento = models.ForeignKey('app_alfa.Evento', on_delete=models.CASCADE, related_name='comentarios')
+    membro = models.ForeignKey('app_alfa.Membro', on_delete=models.CASCADE, related_name='comentarios_eventos')
+    comentario = models.TextField()
+    data_comentario = models.DateTimeField(auto_now_add=True)
+    aprovado = models.BooleanField(default=True)  # Comentários são aprovados por padrão

@@ -16,7 +16,7 @@ export const useAuth = () => {
   };
 };
 
-// Hook para login
+// Hook para login de admin
 export const useLogin = () => {
   const queryClient = useQueryClient();
 
@@ -30,6 +30,24 @@ export const useLogin = () => {
     },
     onError: (error) => {
       console.error('Login failed:', error);
+    }
+  });
+};
+
+// Hook para login de membro
+export const useLoginMembro = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<any, Error, { email: string; senha: string }>({
+    mutationFn: (credentials) => apiClient.loginMembro(credentials),
+    onSuccess: (data) => {
+      if (data.success) {
+        // Invalidar queries relacionadas ao usuário
+        queryClient.invalidateQueries({ queryKey: ['user'] });
+      }
+    },
+    onError: (error) => {
+      console.error('Login de membro failed:', error);
     }
   });
 };

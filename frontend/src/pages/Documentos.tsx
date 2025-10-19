@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Download, Plus, Search, Filter, Calendar, User, Loader2 } from "lucide-react";
+import { FileText, Download, Plus, Search, Filter, Calendar, User, Loader2, Eye } from "lucide-react";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -82,6 +83,10 @@ export default function Documentos() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("Todos");
+  const { hasPermission, canAccess, isAdmin } = usePermissions();
+  
+  // Verificar se o usuário pode gerenciar documentos
+  const canManageDocuments = hasPermission('documentos') || canAccess('documentos') || isAdmin();
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [filtroStatus, setFiltroStatus] = useState("Todos");
   const [loading, setLoading] = useState(false);
@@ -183,22 +188,26 @@ export default function Documentos() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => handleGerarDocumento("Relatório Financeiro")} disabled={loading}>
-            {loading ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Plus className="h-4 w-4 mr-2" />
-            )}
-            Gerar Relatório
-          </Button>
-          <Button variant="outline" onClick={() => handleGerarDocumento("Lista de Membros")} disabled={loading}>
-            {loading ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <FileText className="h-4 w-4 mr-2" />
-            )}
-            Gerar Lista
-          </Button>
+          {canManageDocuments && (
+            <>
+              <Button onClick={() => handleGerarDocumento("Relatório Financeiro")} disabled={loading}>
+                {loading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-2" />
+                )}
+                Gerar Relatório
+              </Button>
+              <Button variant="outline" onClick={() => handleGerarDocumento("Lista de Membros")} disabled={loading}>
+                {loading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <FileText className="h-4 w-4 mr-2" />
+                )}
+                Gerar Lista
+              </Button>
+            </>
+          )}
         </div>
       </div>
 

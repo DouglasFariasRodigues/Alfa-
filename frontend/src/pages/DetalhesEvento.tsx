@@ -1,17 +1,54 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Edit, Calendar, Clock, MapPin, User, FileText } from 'lucide-react'
+import { ArrowLeft, Edit, Calendar, Clock, MapPin, User, FileText, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useEvento } from '@/hooks/useEventos'
+import { usePermissions } from '@/hooks/usePermissions'
+import { useEventPresences, useConfirmPresence } from '@/hooks/useEventPresence'
+import { EventComments } from '@/components/events/EventComments'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from 'sonner'
 
 export default function DetalhesEvento() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   
   const { data: evento, isLoading, error } = useEvento(Number(id))
+  const { hasPermission, canAccess, user } = usePermissions()
+  const confirmPresenceMutation = useConfirmPresence()
+  
+  // Verificar se o usuário pode gerenciar eventos
+  const canManageEvents = hasPermission('eventos') || canAccess('eventos')
+
+  // Buscar confirmações de presença do membro
+  const { data: presencas = [] } = useEventPresences(user?.id);
+
+  // Verificar se o membro já confirmou presença neste evento
+  const isPresenceConfirmed = (eventoId: number) => {
+    return presencas.some((presenca: any) => presenca.evento === eventoId && presenca.confirmado);
+  };
+
+  const handleConfirmPresence = async () => {
+    if (!user || !evento) {
+      toast.error('Usuário não encontrado');
+      return;
+    }
+
+    try {
+      await confirmPresenceMutation.mutateAsync({
+        evento: evento.id,
+        membro: user.id,
+        confirmado: true,
+        observacoes: 'Presença confirmada pelo membro'
+      });
+      toast.success('Presença confirmada com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao confirmar presença');
+      console.error('Erro ao confirmar presença:', error);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -151,10 +188,20 @@ export default function DetalhesEvento() {
             </p>
           </div>
         </div>
-        <Button onClick={() => navigate(`/eventos/${evento.id}/editar`)}>
-          <Edit className="h-4 w-4 mr-2" />
-          Editar Evento
-        </Button>
+        {canManageEvents ? (
+          <Button onClick={() => navigate(`/eventos/${evento.id}/editar`)}>
+            <Edit className="h-4 w-4 mr-2" />
+            Editar Evento
+          </Button>
+        ) : (
+          <Button 
+            onClick={handleConfirmPresence}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <CheckCircle className="h-4 w-4 mr-2" />
+            Confirmar Presença
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -295,10 +342,20 @@ export default function DetalhesEvento() {
         </CardHeader>
         <CardContent>
           <div className="flex gap-3">
-            <Button onClick={() => navigate(`/eventos/${evento.id}/editar`)}>
-              <Edit className="h-4 w-4 mr-2" />
-              Editar Evento
-            </Button>
+            {canManageEvents ? (
+              <Button onClick={() => navigate(`/eventos/${evento.id}/editar`)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Editar Evento
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleConfirmPresence}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Confirmar Presença
+              </Button>
+            )}
             <Button variant="outline" onClick={() => navigate('/eventos')}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar para Eventos
@@ -306,6 +363,9 @@ export default function DetalhesEvento() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Comentários do Evento */}
+      <EventComments eventoId={evento.id} />
     </div>
   )
 }

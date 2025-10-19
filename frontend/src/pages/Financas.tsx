@@ -1,7 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, DollarSign, PieChart, Plus, Download, Loader2 } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, PieChart, Plus, Download, Loader2, Eye, Heart } from "lucide-react";
+import { usePermissions } from "@/hooks/usePermissions";
+import { QRCodeDonation } from "@/components/donations/QRCodeDonation";
 import {
   Table,
   TableBody,
@@ -15,6 +17,10 @@ import { useTransacoes } from "@/hooks/useTransacoes";
 export default function Financas() {
   // Buscar transações da API
   const { data: transacoes = [], isLoading, error } = useTransacoes();
+  const { hasPermission, canAccess, isAdmin } = usePermissions();
+  
+  // Verificar se o usuário pode gerenciar finanças
+  const canManageFinances = hasPermission('financas') || canAccess('financas') || isAdmin();
 
   if (error) {
     return (
@@ -71,13 +77,15 @@ export default function Financas() {
             <Download className="mr-2 h-4 w-4" />
             Relatório
           </Button>
-        <Button 
-          onClick={() => window.location.href = '/financas/nova-transacao'}
-          className="gradient-primary text-white shadow-elegant hover:opacity-90"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Nova Transação
-        </Button>
+        {canManageFinances && (
+          <Button 
+            onClick={() => window.location.href = '/financas/nova-transacao'}
+            className="gradient-primary text-white shadow-elegant hover:opacity-90"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Nova Transação
+          </Button>
+        )}
         </div>
       </div>
 
@@ -290,6 +298,55 @@ export default function Financas() {
           )}
         </CardContent>
       </Card>
+
+      {/* Seção de Doação para Membros */}
+      {!canManageFinances && (
+        <div className="grid gap-6 md:grid-cols-2">
+          <QRCodeDonation 
+            onDonate={() => {
+              // TODO: Implementar lógica de doação
+              console.log('Doação realizada!');
+            }}
+          />
+          
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Heart className="h-5 w-5 text-red-500" />
+                Suas Doações
+              </CardTitle>
+              <CardDescription>
+                Histórico das suas contribuições
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-green-800">Oferta Especial</p>
+                    <p className="text-sm text-green-600">15/10/2024</p>
+                  </div>
+                  <Badge className="bg-green-100 text-green-800">R$ 50,00</Badge>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-blue-800">Dízimo</p>
+                    <p className="text-sm text-blue-600">01/10/2024</p>
+                  </div>
+                  <Badge className="bg-blue-100 text-blue-800">R$ 200,00</Badge>
+                </div>
+                
+                <div className="text-center py-4">
+                  <p className="text-sm text-muted-foreground">
+                    Total doado este mês: <span className="font-semibold text-green-600">R$ 250,00</span>
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

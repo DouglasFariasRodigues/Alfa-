@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserProfile } from "@/components/ui/UserProfile";
 import { 
   Church, 
   User, 
@@ -173,6 +174,9 @@ export default function Configuracoes() {
           Configure sua igreja e personalize o sistema
         </p>
       </div>
+
+      {/* Perfil do Usuário */}
+      <UserProfile />
 
       <div className="grid gap-6">
         {/* Configurações da Igreja */}

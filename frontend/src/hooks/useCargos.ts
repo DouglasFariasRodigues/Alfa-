@@ -7,17 +7,27 @@ export interface Cargo {
   descricao?: string
   criado_por?: number
   data_criacao: string
-  pode_fazer_postagens: boolean
   pode_registrar_dizimos: boolean
   pode_registrar_ofertas: boolean
+  pode_gerenciar_membros: boolean
+  pode_gerenciar_eventos: boolean
+  pode_gerenciar_financas: boolean
+  pode_gerenciar_cargos: boolean
+  pode_gerenciar_documentos: boolean
+  pode_visualizar_relatorios: boolean
 }
 
 export interface CargoCreate {
   nome: string
   descricao?: string
-  pode_fazer_postagens?: boolean
   pode_registrar_dizimos?: boolean
   pode_registrar_ofertas?: boolean
+  pode_gerenciar_membros?: boolean
+  pode_gerenciar_eventos?: boolean
+  pode_gerenciar_financas?: boolean
+  pode_gerenciar_cargos?: boolean
+  pode_gerenciar_documentos?: boolean
+  pode_visualizar_relatorios?: boolean
 }
 
 export interface CargoUpdate extends Partial<CargoCreate> {

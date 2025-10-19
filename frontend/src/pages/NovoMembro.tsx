@@ -10,12 +10,15 @@ import { ArrowLeft, Save, User, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateMembro } from "@/hooks/useMembros";
 import { useCargos } from "@/hooks/useCargos";
+import { ImageUpload } from "@/components/ui/ImageUpload";
+import { useImageUpload } from "@/hooks/useImageUpload";
 
 export default function NovoMembro() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const createMembroMutation = useCreateMembro();
   const { data: cargos = [] } = useCargos();
+  const { uploadImage } = useImageUpload();
   
   const [formData, setFormData] = useState({
     nome: "",
@@ -29,10 +32,12 @@ export default function NovoMembro() {
     igreja_origem: "",
     status: "ativo" as "ativo" | "inativo" | "falecido" | "afastado",
     cargo: "",
+    senha: "",
     observacoes: ""
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [fotoUrl, setFotoUrl] = useState<string>("");
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -41,6 +46,20 @@ export default function NovoMembro() {
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: "" }));
     }
+  };
+
+  const handleImageUpload = async (file: File): Promise<string> => {
+    try {
+      const result = await uploadImage(file, 'membros');
+      setFotoUrl(result.url);
+      return result.url;
+    } catch (error: any) {
+      throw new Error(error.message || 'Erro ao fazer upload da foto');
+    }
+  };
+
+  const handleRemoveImage = (url: string) => {
+    setFotoUrl("");
   };
 
   const validateForm = (): boolean => {
@@ -59,6 +78,11 @@ export default function NovoMembro() {
     }
     if (!formData.telefone.trim()) {
       newErrors.telefone = "Telefone é obrigatório";
+    }
+    if (!formData.senha.trim()) {
+      newErrors.senha = "Senha é obrigatória";
+    } else if (formData.senha.length < 6) {
+      newErrors.senha = "Senha deve ter pelo menos 6 caracteres";
     }
 
     setErrors(newErrors);
@@ -91,7 +115,9 @@ export default function NovoMembro() {
         igreja_origem: formData.igreja_origem || '',
         status: formData.status,
         cargo: formData.cargo || '',
-        observacoes: formData.observacoes || ''
+        senha: formData.senha,
+        observacoes: formData.observacoes || '',
+        foto: fotoUrl || undefined
       };
       
       await createMembroMutation.mutateAsync(membroData);
@@ -206,6 +232,21 @@ export default function NovoMembro() {
               </div>
               
               <div className="space-y-2">
+                <Label htmlFor="senha">Senha para Acesso *</Label>
+                <Input
+                  id="senha"
+                  type="password"
+                  value={formData.senha}
+                  onChange={(e) => handleInputChange("senha", e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  className={errors.senha ? "border-red-500" : ""}
+                />
+                {errors.senha && <p className="text-sm text-red-500">{errors.senha}</p>}
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
                 <Label htmlFor="data_nascimento">Data de Nascimento</Label>
                 <Input
                   id="data_nascimento"
@@ -223,6 +264,18 @@ export default function NovoMembro() {
                 value={formData.endereco}
                 onChange={(e) => handleInputChange("endereco", e.target.value)}
                 placeholder="Rua, número, bairro, cidade, estado"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Foto do Membro</Label>
+              <ImageUpload
+                onUpload={handleImageUpload}
+                onRemove={handleRemoveImage}
+                existingImages={fotoUrl ? [fotoUrl] : []}
+                maxImages={1}
+                maxSize={5}
+                className="max-w-md"
               />
             </div>
 

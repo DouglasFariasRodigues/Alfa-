@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, Plus, Filter, MoreHorizontal, Phone, Mail, MapPin, Loader2 } from "lucide-react";
+import { Search, Plus, Filter, MoreHorizontal, Phone, Mail, MapPin, Loader2, Eye, Edit, Trash2 } from "lucide-react";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   Table,
   TableBody,
@@ -33,6 +34,10 @@ export default function Membros() {
   });
   
   const deleteMembroMutation = useDeleteMembro();
+  const { hasPermission, canAccess, isAdmin, isMember } = usePermissions();
+  
+  // Verificar se o usuário pode gerenciar membros
+  const canManageMembers = hasPermission('membros') || canAccess('membros') || isAdmin();
 
   const handleDeleteMembro = async (id: number) => {
     if (window.confirm('Tem certeza que deseja desativar este membro?')) {
@@ -79,13 +84,15 @@ export default function Membros() {
             Gerencie os membros da sua comunidade
           </p>
         </div>
-        <Button 
-          onClick={() => window.location.href = '/membros/novo'}
-          className="gradient-primary text-white shadow-elegant hover:opacity-90"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Membro
-        </Button>
+        {canManageMembers && (
+          <Button 
+            onClick={() => window.location.href = '/membros/novo'}
+            className="gradient-primary text-white shadow-elegant hover:opacity-90"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Membro
+          </Button>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -242,18 +249,25 @@ export default function Membros() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => window.location.href = `/membros/${membro.id}`}>
+                          <Eye className="mr-2 h-4 w-4" />
                           Ver detalhes
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => window.location.href = `/membros/${membro.id}/editar`}>
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>Gerar cartão</DropdownMenuItem>
-                        <DropdownMenuItem 
-                          className="text-destructive"
-                          onClick={() => handleDeleteMembro(membro.id)}
-                        >
-                          Desativar
-                        </DropdownMenuItem>
+                        {canManageMembers && (
+                          <>
+                            <DropdownMenuItem onClick={() => window.location.href = `/membros/${membro.id}/editar`}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>Gerar cartão</DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-destructive"
+                              onClick={() => handleDeleteMembro(membro.id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Desativar
+                            </DropdownMenuItem>
+                          </>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

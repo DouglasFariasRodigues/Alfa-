@@ -5,10 +5,10 @@ import {
   DollarSign, 
   FileText, 
   Settings,
-  Shield,
-  Newspaper
+  Shield
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import { usePermissions } from "@/hooks/usePermissions";
 import logoAlfa from "@/assets/logo_alfa.png";
 
 import {
@@ -25,17 +25,17 @@ import {
 } from "@/components/ui/sidebar";
 
 const mainItems = [
-  { title: "Dashboard", url: "/dashboard", icon: Home },
-  { title: "Membros", url: "/membros", icon: Users },
-  { title: "Eventos", url: "/eventos", icon: Calendar },
-  { title: "Finanças", url: "/financas", icon: DollarSign },
+  { title: "Dashboard", url: "/dashboard", icon: Home, permission: null }, // Sempre visível para admins
+  { title: "Minha Área", url: "/member-dashboard", icon: Home, permission: null }, // Para membros
+  { title: "Membros", url: "/membros", icon: Users, permission: "membros" },
+  { title: "Eventos", url: "/eventos", icon: Calendar, permission: "eventos" },
+  { title: "Finanças", url: "/financas", icon: DollarSign, permission: "financas" },
 ];
 
 const otherItems = [
-  { title: "Postagens", url: "/postagens", icon: Newspaper },
-  { title: "Cargos", url: "/cargos", icon: Shield },
-  { title: "Documentos", url: "/documentos", icon: FileText },
-  { title: "Configurações", url: "/configuracoes", icon: Settings },
+  { title: "Cargos", url: "/cargos", icon: Shield, permission: "cargos" },
+  { title: "Documentos", url: "/documentos", icon: FileText, permission: "documentos" },
+  { title: "Configurações", url: "/configuracoes", icon: Settings, permission: null }, // Sempre visível
 ];
 
 export function AppSidebar() {
@@ -43,6 +43,8 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const currentPath = location.pathname;
+  const { canAccess, isAdmin, isMember, user } = usePermissions();
+
 
   const isActive = (path: string) => {
     if (path === "/dashboard") return currentPath === "/dashboard";
@@ -55,6 +57,24 @@ export function AppSidebar() {
       ? `${baseClass} bg-primary text-primary-foreground shadow-sm`
       : `${baseClass} hover:bg-accent hover:text-accent-foreground`;
   };
+
+  // Filtrar itens baseado em permissões
+  const filteredMainItems = mainItems.filter(item => {
+    // Dashboard sempre visível para admins
+    if (item.url === '/dashboard') {
+      return isAdmin();
+    }
+    // Minha Área sempre visível para membros
+    if (item.url === '/member-dashboard') {
+      return isMember();
+    }
+    // Para outros itens, verificar permissões
+    return !item.permission || canAccess(item.permission) || isAdmin();
+  });
+
+  const filteredOtherItems = otherItems.filter(item => 
+    !item.permission || canAccess(item.permission) || isAdmin()
+  );
 
   return (
     <Sidebar className={collapsed ? "w-16" : "w-64"}>
@@ -79,7 +99,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
+              {filteredMainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink 
@@ -100,7 +120,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Outros</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {otherItems.map((item) => (
+              {filteredOtherItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink 

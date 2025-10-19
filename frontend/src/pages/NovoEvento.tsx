@@ -8,11 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Save, Calendar, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateEvento } from "@/hooks/useEventos";
+import { ImageUpload } from "@/components/ui/ImageUpload";
+import { useImageUpload } from "@/hooks/useImageUpload";
 
 export default function NovoEvento() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const createEventoMutation = useCreateEvento();
+  const { uploadImage } = useImageUpload();
   
   const [formData, setFormData] = useState({
     titulo: "",
@@ -24,6 +27,7 @@ export default function NovoEvento() {
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [fotosUrls, setFotosUrls] = useState<string[]>([]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -32,6 +36,20 @@ export default function NovoEvento() {
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: "" }));
     }
+  };
+
+  const handleImageUpload = async (file: File): Promise<string> => {
+    try {
+      const result = await uploadImage(file, 'eventos');
+      setFotosUrls(prev => [...prev, result.url]);
+      return result.url;
+    } catch (error: any) {
+      throw new Error(error.message || 'Erro ao fazer upload da foto');
+    }
+  };
+
+  const handleRemoveImage = (url: string) => {
+    setFotosUrls(prev => prev.filter(fotoUrl => fotoUrl !== url));
   };
 
   const validateForm = (): boolean => {
@@ -76,7 +94,8 @@ export default function NovoEvento() {
         descricao: formData.descricao || '',
         data: dataHora,
         local: formData.local,
-        observacoes: formData.observacoes || ''
+        observacoes: formData.observacoes || '',
+        fotos: fotosUrls.length > 0 ? fotosUrls : undefined
       };
       
       await createEventoMutation.mutateAsync(eventoData);
@@ -186,6 +205,17 @@ export default function NovoEvento() {
                 className={errors.local ? "border-red-500" : ""}
               />
               {errors.local && <p className="text-sm text-red-500">{errors.local}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Fotos do Evento</Label>
+              <ImageUpload
+                onUpload={handleImageUpload}
+                onRemove={handleRemoveImage}
+                existingImages={fotosUrls}
+                maxImages={5}
+                maxSize={5}
+              />
             </div>
 
             <div className="space-y-2">

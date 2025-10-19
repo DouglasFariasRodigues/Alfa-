@@ -81,10 +81,10 @@ class FotoPostagemAdmin(admin.ModelAdmin):
 
 @admin.register(Cargo)
 class CargoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'criado_por', 'data_criacao', 'pode_fazer_postagens', 'pode_registrar_dizimos', 'pode_registrar_ofertas')
+    list_display = ('nome', 'criado_por', 'data_criacao', 'pode_registrar_dizimos', 'pode_registrar_ofertas', 'pode_gerenciar_membros', 'pode_gerenciar_eventos')
     search_fields = ('nome', 'descricao')
-    list_filter = ('data_criacao', 'pode_fazer_postagens', 'pode_registrar_dizimos', 'pode_registrar_ofertas')
-    list_editable = ('pode_fazer_postagens', 'pode_registrar_dizimos', 'pode_registrar_ofertas')
+    list_filter = ('data_criacao', 'pode_registrar_dizimos', 'pode_registrar_ofertas', 'pode_gerenciar_membros', 'pode_gerenciar_eventos')
+    list_editable = ('pode_registrar_dizimos', 'pode_registrar_ofertas', 'pode_gerenciar_membros', 'pode_gerenciar_eventos')
 
 @admin.register(ONG)
 class ONGAdmin(admin.ModelAdmin):

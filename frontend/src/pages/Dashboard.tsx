@@ -1,16 +1,46 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Calendar, DollarSign, TrendingUp, UserPlus, CalendarDays, Loader2 } from "lucide-react";
-import { useMembros } from "@/hooks/useMembros";
-import { useEventos } from "@/hooks/useEventos";
-import { useTransacoes } from "@/hooks/useTransacoes";
+import { apiClient } from '@/lib/api';
+import { useEffect, useState } from 'react';
 
 export default function Dashboard() {
-  // Buscar dados da API
-  const { data: membros = [], isLoading: loadingMembros } = useMembros();
-  const { data: eventos = [], isLoading: loadingEventos } = useEventos();
-  const { data: transacoes = [], isLoading: loadingTransacoes } = useTransacoes();
+  const [membros, setMembros] = useState<any[]>([]);
+  const [eventos, setEventos] = useState<any[]>([]);
+  const [transacoes, setTransacoes] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const isLoading = loadingMembros || loadingEventos || loadingTransacoes;
+
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const [membrosData, eventosData, transacoesData] = await Promise.all([
+          apiClient.getMembros(),
+          apiClient.getEventos(),
+          apiClient.getTransacoes()
+        ]);
+        
+        setMembros(membrosData);
+        setEventos(eventosData);
+        setTransacoes(transacoesData);
+      } catch (err: any) {
+        console.error("Erro ao carregar dados:", err);
+        setError(err.message || "Erro ao carregar dados");
+        // Em caso de erro, definir arrays vazios para evitar tela branca
+        setMembros([]);
+        setEventos([]);
+        setTransacoes([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   // Calcular estatísticas
   const totalMembros = membros.length;
@@ -90,6 +120,44 @@ export default function Dashboard() {
       time: "Dados atualizados"
     }] : [])
   ];
+  // Se houver erro, mostrar informações de debug
+  if (error) {
+    return (
+      <div className="p-6 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-red-600">Erro ao carregar Dashboard</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Erro ao carregar dados: {error}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="mt-4"
+            >
+              Tentar Novamente
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Se ainda está carregando, mostrar loading
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-32 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       <div>

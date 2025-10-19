@@ -19,9 +19,14 @@ export default function NovoCargo() {
   const [formData, setFormData] = useState<CargoCreate>({
     nome: '',
     descricao: '',
-    pode_fazer_postagens: false,
     pode_registrar_dizimos: false,
     pode_registrar_ofertas: false,
+    pode_gerenciar_membros: false,
+    pode_gerenciar_eventos: false,
+    pode_gerenciar_financas: false,
+    pode_gerenciar_cargos: false,
+    pode_gerenciar_documentos: false,
+    pode_visualizar_relatorios: false,
   })
 
   const [errors, setErrors] = useState<Partial<CargoCreate>>({})
@@ -37,9 +42,14 @@ export default function NovoCargo() {
       setFormData({
         nome: cargo.nome,
         descricao: cargo.descricao || '',
-        pode_fazer_postagens: cargo.pode_fazer_postagens,
         pode_registrar_dizimos: cargo.pode_registrar_dizimos,
         pode_registrar_ofertas: cargo.pode_registrar_ofertas,
+        pode_gerenciar_membros: cargo.pode_gerenciar_membros,
+        pode_gerenciar_eventos: cargo.pode_gerenciar_eventos,
+        pode_gerenciar_financas: cargo.pode_gerenciar_financas,
+        pode_gerenciar_cargos: cargo.pode_gerenciar_cargos,
+        pode_gerenciar_documentos: cargo.pode_gerenciar_documentos,
+        pode_visualizar_relatorios: cargo.pode_visualizar_relatorios,
       })
     }
   })
@@ -210,22 +220,6 @@ export default function NovoCargo() {
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
                   <Checkbox
-                    id="pode_fazer_postagens"
-                    checked={formData.pode_fazer_postagens}
-                    onCheckedChange={(checked) => 
-                      handleInputChange('pode_fazer_postagens', !!checked)
-                    }
-                  />
-                  <Label htmlFor="pode_fazer_postagens" className="text-sm font-medium">
-                    Pode criar postagens
-                  </Label>
-                </div>
-                <p className="text-xs text-muted-foreground ml-6">
-                  Permite criar e gerenciar postagens e notícias
-                </p>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
                     id="pode_registrar_dizimos"
                     checked={formData.pode_registrar_dizimos}
                     onCheckedChange={(checked) => 
@@ -254,6 +248,102 @@ export default function NovoCargo() {
                 </div>
                 <p className="text-xs text-muted-foreground ml-6">
                   Permite registrar e gerenciar ofertas e doações
+                </p>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="pode_gerenciar_membros"
+                    checked={formData.pode_gerenciar_membros}
+                    onCheckedChange={(checked) => 
+                      handleInputChange('pode_gerenciar_membros', !!checked)
+                    }
+                  />
+                  <Label htmlFor="pode_gerenciar_membros" className="text-sm font-medium">
+                    Pode gerenciar membros
+                  </Label>
+                </div>
+                <p className="text-xs text-muted-foreground ml-6">
+                  Permite criar, editar e gerenciar membros da igreja
+                </p>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="pode_gerenciar_eventos"
+                    checked={formData.pode_gerenciar_eventos}
+                    onCheckedChange={(checked) => 
+                      handleInputChange('pode_gerenciar_eventos', !!checked)
+                    }
+                  />
+                  <Label htmlFor="pode_gerenciar_eventos" className="text-sm font-medium">
+                    Pode gerenciar eventos
+                  </Label>
+                </div>
+                <p className="text-xs text-muted-foreground ml-6">
+                  Permite criar, editar e gerenciar eventos da igreja
+                </p>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="pode_gerenciar_financas"
+                    checked={formData.pode_gerenciar_financas}
+                    onCheckedChange={(checked) => 
+                      handleInputChange('pode_gerenciar_financas', !!checked)
+                    }
+                  />
+                  <Label htmlFor="pode_gerenciar_financas" className="text-sm font-medium">
+                    Pode gerenciar finanças
+                  </Label>
+                </div>
+                <p className="text-xs text-muted-foreground ml-6">
+                  Permite gerenciar transações financeiras e relatórios
+                </p>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="pode_gerenciar_cargos"
+                    checked={formData.pode_gerenciar_cargos}
+                    onCheckedChange={(checked) => 
+                      handleInputChange('pode_gerenciar_cargos', !!checked)
+                    }
+                  />
+                  <Label htmlFor="pode_gerenciar_cargos" className="text-sm font-medium">
+                    Pode gerenciar cargos
+                  </Label>
+                </div>
+                <p className="text-xs text-muted-foreground ml-6">
+                  Permite criar e gerenciar cargos e permissões
+                </p>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="pode_gerenciar_documentos"
+                    checked={formData.pode_gerenciar_documentos}
+                    onCheckedChange={(checked) => 
+                      handleInputChange('pode_gerenciar_documentos', !!checked)
+                    }
+                  />
+                  <Label htmlFor="pode_gerenciar_documentos" className="text-sm font-medium">
+                    Pode gerenciar documentos
+                  </Label>
+                </div>
+                <p className="text-xs text-muted-foreground ml-6">
+                  Permite gerenciar documentos e certificados
+                </p>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="pode_visualizar_relatorios"
+                    checked={formData.pode_visualizar_relatorios}
+                    onCheckedChange={(checked) => 
+                      handleInputChange('pode_visualizar_relatorios', !!checked)
+                    }
+                  />
+                  <Label htmlFor="pode_visualizar_relatorios" className="text-sm font-medium">
+                    Pode visualizar relatórios
+                  </Label>
+                </div>
+                <p className="text-xs text-muted-foreground ml-6">
+                  Permite visualizar relatórios e estatísticas do sistema
                 </p>
               </div>
             </div>

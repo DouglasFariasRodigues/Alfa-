@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "./components/layout/AppLayout";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { FallbackRedirect } from "./components/auth/FallbackRedirect";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -23,9 +24,9 @@ import Configuracoes from "./pages/Configuracoes";
 import Cargos from "./pages/Cargos";
 import NovoCargo from "./pages/NovoCargo";
 import DetalhesCargo from "./pages/DetalhesCargo";
-import Postagens from "./pages/Postagens";
-import NovaPostagem from "./pages/NovaPostagem";
-import DetalhesPostagem from "./pages/DetalhesPostagem";
+import PermissionTest from "./pages/PermissionTest";
+import MemberDashboard from "./pages/MemberDashboard";
+import TestMemberFeatures from "./pages/TestMemberFeatures";
 import NotFound from "./pages/NotFound";
 // Páginas para membros comuns (visualização)
 import MembrosVisualizacao from "./pages/MembrosVisualizacao";
@@ -46,6 +47,31 @@ const App = () => (
           
           {/* Login */}
           <Route path="/login" element={<Login />} />
+          
+          {/* Teste de Permissões */}
+          <Route path="/permission-test" element={<PermissionTest />} />
+          
+          {/* Teste de Funcionalidades para Membros */}
+          <Route path="/test-member-features" element={
+            <ProtectedRoute>
+              <AppLayout><TestMemberFeatures /></AppLayout>
+            </ProtectedRoute>
+          } />
+          
+          {/* Dashboard para Membros */}
+          <Route path="/member-dashboard" element={
+            <ProtectedRoute>
+              <AppLayout><MemberDashboard /></AppLayout>
+            </ProtectedRoute>
+          } />
+          
+          
+          {/* Redirecionamento Inteligente */}
+          <Route path="/redirect" element={
+            <ProtectedRoute>
+              <FallbackRedirect />
+            </ProtectedRoute>
+          } />
           
           {/* Rotas Protegidas do Sistema */}
           <Route path="/dashboard" element={
@@ -136,27 +162,6 @@ const App = () => (
             </ProtectedRoute>
           } />
           
-          {/* Rotas de Postagens */}
-          <Route path="/postagens" element={
-            <ProtectedRoute>
-              <AppLayout><Postagens /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/postagens/nova" element={
-            <ProtectedRoute>
-              <AppLayout><NovaPostagem /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/postagens/editar/:id" element={
-            <ProtectedRoute>
-              <AppLayout><NovaPostagem /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/postagens/:id" element={
-            <ProtectedRoute>
-              <AppLayout><DetalhesPostagem /></AppLayout>
-            </ProtectedRoute>
-          } />
           
           {/* Rotas para Membros Comuns (Visualização) */}
           <Route path="/membro/membros" element={

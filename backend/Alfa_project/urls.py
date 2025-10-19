@@ -27,7 +27,7 @@ from app_alfa.viewsets import (
     TransacaoViewSet, OfertaViewSet, CargoViewSet, AdminViewSet,
     ONGViewSet, IgrejaViewSet, GrupoViewSet, DoacaoViewSet,
     TransferenciaViewSet, FotoEventoViewSet, FotoPostagemViewSet,
-    DocumentoMembroViewSet
+    DocumentoMembroViewSet, EventoPresencaViewSet, EventoComentarioViewSet
 )
 
 # Configurar router para viewsets
@@ -48,6 +48,8 @@ router.register(r'transferencias', TransferenciaViewSet)
 router.register(r'fotos-eventos', FotoEventoViewSet)
 router.register(r'fotos-postagens', FotoPostagemViewSet)
 router.register(r'documentos-membros', DocumentoMembroViewSet)
+router.register(r'eventos-presencas', EventoPresencaViewSet)
+router.register(r'eventos-comentarios', EventoComentarioViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Edit, Users, Calendar, FileText, DollarSign, Gift } from 'lucide-react'
+import { ArrowLeft, Edit, Users, Calendar, FileText, DollarSign, Gift, Shield, BarChart3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -82,13 +82,6 @@ export default function DetalhesCargo() {
 
   const permissions = [
     {
-      key: 'pode_fazer_postagens',
-      label: 'Criar Postagens',
-      description: 'Pode criar e gerenciar postagens e notícias',
-      icon: FileText,
-      enabled: cargo.pode_fazer_postagens
-    },
-    {
       key: 'pode_registrar_dizimos',
       label: 'Registrar Dízimos',
       description: 'Pode registrar e gerenciar dízimos dos membros',
@@ -101,6 +94,48 @@ export default function DetalhesCargo() {
       description: 'Pode registrar e gerenciar ofertas e doações',
       icon: Gift,
       enabled: cargo.pode_registrar_ofertas
+    },
+    {
+      key: 'pode_gerenciar_membros',
+      label: 'Gerenciar Membros',
+      description: 'Pode criar, editar e gerenciar membros da igreja',
+      icon: Users,
+      enabled: cargo.pode_gerenciar_membros
+    },
+    {
+      key: 'pode_gerenciar_eventos',
+      label: 'Gerenciar Eventos',
+      description: 'Pode criar, editar e gerenciar eventos da igreja',
+      icon: Calendar,
+      enabled: cargo.pode_gerenciar_eventos
+    },
+    {
+      key: 'pode_gerenciar_financas',
+      label: 'Gerenciar Finanças',
+      description: 'Pode gerenciar transações financeiras e relatórios',
+      icon: DollarSign,
+      enabled: cargo.pode_gerenciar_financas
+    },
+    {
+      key: 'pode_gerenciar_cargos',
+      label: 'Gerenciar Cargos',
+      description: 'Pode criar e gerenciar cargos e permissões',
+      icon: Shield,
+      enabled: cargo.pode_gerenciar_cargos
+    },
+    {
+      key: 'pode_gerenciar_documentos',
+      label: 'Gerenciar Documentos',
+      description: 'Pode gerenciar documentos e certificados',
+      icon: FileText,
+      enabled: cargo.pode_gerenciar_documentos
+    },
+    {
+      key: 'pode_visualizar_relatorios',
+      label: 'Visualizar Relatórios',
+      description: 'Pode visualizar relatórios e estatísticas do sistema',
+      icon: BarChart3,
+      enabled: cargo.pode_visualizar_relatorios
     }
   ]
 

@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2 } from 'lucide-react';
-import { useLogin } from '@/hooks/useAuth';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader2, Shield, Users } from 'lucide-react';
+import { useLogin, useLoginMembro } from '@/hooks/useAuth';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -20,6 +21,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export const LoginForm = () => {
   const [error, setError] = useState<string>('');
   const loginMutation = useLogin();
+  const loginMembroMutation = useLoginMembro();
 
   const {
     register,
@@ -29,13 +31,29 @@ export const LoginForm = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmitAdmin = async (data: LoginFormData) => {
     setError('');
     try {
       const result = await loginMutation.mutateAsync(data);
       if (result.success) {
-        // Redirecionar para o dashboard
-        window.location.href = '/dashboard';
+        // Redirecionar para página apropriada baseada no tipo de usuário
+        window.location.href = '/redirect';
+      } else {
+        setError(result.message || 'Erro ao fazer login');
+      }
+    } catch (err) {
+      setError('Erro ao conectar com o servidor');
+      console.error('Login error:', err);
+    }
+  };
+
+  const onSubmitMembro = async (data: LoginFormData) => {
+    setError('');
+    try {
+      const result = await loginMembroMutation.mutateAsync(data);
+      if (result.success) {
+        // Redirecionar para página apropriada baseada no tipo de usuário
+        window.location.href = '/redirect';
       } else {
         setError(result.message || 'Erro ao fazer login');
       }
@@ -57,7 +75,20 @@ export const LoginForm = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <Tabs defaultValue="admin" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="admin" className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Admin
+              </TabsTrigger>
+              <TabsTrigger value="membro" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Membro
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="admin" className="space-y-4">
+              <form onSubmit={handleSubmit(onSubmitAdmin)} className="space-y-4">
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
@@ -92,21 +123,76 @@ export const LoginForm = () => {
               )}
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loginMutation.isPending}
-            >
-              {loginMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Entrando...
-                </>
-              ) : (
-                'Entrar'
-              )}
-            </Button>
-          </form>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={loginMutation.isPending}
+                >
+                  {loginMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Entrando...
+                    </>
+                  ) : (
+                    'Entrar como Admin'
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+            
+            <TabsContent value="membro" className="space-y-4">
+              <form onSubmit={handleSubmit(onSubmitMembro)} className="space-y-4">
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="email-membro">Email</Label>
+                  <Input
+                    id="email-membro"
+                    type="email"
+                    placeholder="seu@email.com"
+                    {...register('email')}
+                    disabled={loginMembroMutation.isPending}
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-red-600">{errors.email.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="senha-membro">Senha</Label>
+                  <Input
+                    id="senha-membro"
+                    type="password"
+                    placeholder="Sua senha"
+                    {...register('senha')}
+                    disabled={loginMembroMutation.isPending}
+                  />
+                  {errors.senha && (
+                    <p className="text-sm text-red-600">{errors.senha.message}</p>
+                  )}
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={loginMembroMutation.isPending}
+                >
+                  {loginMembroMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Entrando...
+                    </>
+                  ) : (
+                    'Entrar como Membro'
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>

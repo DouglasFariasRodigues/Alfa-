@@ -1,168 +1,224 @@
 from django.core.management.base import BaseCommand
-from app_alfa.models import Admin, Cargo, Membro, Evento, Usuario, Transacao, Postagem
+from app_alfa.models import Admin, Cargo, Membro, Evento, Transacao, Usuario
+from datetime import date, datetime, timedelta
 
 class Command(BaseCommand):
     help = 'Cria dados de teste para o sistema'
 
     def handle(self, *args, **options):
-        self.stdout.write('Criando dados de teste...')
+        # Buscar admin
+        admin = Admin.objects.get(email='admin@igreja.com')
+        cargo_admin = admin.cargo
 
-        # Criar cargo
-        cargo, created = Cargo.objects.get_or_create(
-            nome='Pastor',
-            defaults={
-                'descricao': 'Pastor da igreja',
-                'pode_fazer_postagens': True,
-                'pode_registrar_dizimos': True,
-                'pode_registrar_ofertas': True,
-            }
-        )
-
-        # Criar admin
-        admin, created = Admin.objects.get_or_create(
+        # Criar usuário para eventos
+        usuario_admin, created = Usuario.objects.get_or_create(
             email='admin@igreja.com',
             defaults={
-                'nome': 'Pastor João Silva',
-                'telefone': '(11) 99999-9999',
-                'cargo': cargo,
-                'is_active': True,
+                'username': 'admin',
+                'senha': 'admin123',
+                'cargo': cargo_admin,
                 'is_staff': True,
-                'senha': 'admin123',  # Em produção, usar hash
             }
         )
+        if created:
+            self.stdout.write(
+                self.style.SUCCESS(f'Usuário admin criado!')
+            )
 
-        # Criar usuário correspondente
-        usuario, created = Usuario.objects.get_or_create(
-            username='admin@igreja.com',
-            defaults={
-                'email': 'admin@igreja.com',
-                'telefone': '(11) 99999-9999',
-                'cargo': cargo,
-                'is_active': True,
-                'is_staff': True,
-                'senha': 'admin123',  # Em produção, usar hash
-            }
-        )
-
-        # Criar alguns membros de teste
-        membros_data = [
+        # Criar cargos de teste
+        cargos_data = [
             {
-                'nome': 'Maria Santos',
-                'cpf': '123.456.789-00',
-                'telefone': '(11) 88888-8888',
-                'email': 'maria@email.com',
-                'status': 'ativo',
+                'nome': 'Secretário',
+                'descricao': 'Responsável pela secretaria da igreja',
+                'pode_registrar_dizimos': True,
+                'pode_registrar_ofertas': True,
+                'pode_gerenciar_membros': True,
+                'pode_gerenciar_eventos': False,
+                'pode_gerenciar_financas': False,
+                'pode_gerenciar_cargos': False,
+                'pode_gerenciar_documentos': True,
+                'pode_visualizar_relatorios': True,
             },
             {
-                'nome': 'João Oliveira',
-                'cpf': '987.654.321-00',
-                'telefone': '(11) 77777-7777',
-                'email': 'joao@email.com',
-                'status': 'ativo',
+                'nome': 'Tesoureiro',
+                'descricao': 'Responsável pelas finanças da igreja',
+                'pode_registrar_dizimos': True,
+                'pode_registrar_ofertas': True,
+                'pode_gerenciar_membros': False,
+                'pode_gerenciar_eventos': False,
+                'pode_gerenciar_financas': True,
+                'pode_gerenciar_cargos': False,
+                'pode_gerenciar_documentos': False,
+                'pode_visualizar_relatorios': True,
+            },
+            {
+                'nome': 'Líder de Eventos',
+                'descricao': 'Responsável pela organização de eventos',
+                'pode_registrar_dizimos': False,
+                'pode_registrar_ofertas': False,
+                'pode_gerenciar_membros': False,
+                'pode_gerenciar_eventos': True,
+                'pode_gerenciar_financas': False,
+                'pode_gerenciar_cargos': False,
+                'pode_gerenciar_documentos': False,
+                'pode_visualizar_relatorios': False,
+            },
+            {
+                'nome': 'Membro',
+                'descricao': 'Membro comum da igreja',
+                'pode_registrar_dizimos': False,
+                'pode_registrar_ofertas': False,
+                'pode_gerenciar_membros': False,
+                'pode_gerenciar_eventos': False,
+                'pode_gerenciar_financas': False,
+                'pode_gerenciar_cargos': False,
+                'pode_gerenciar_documentos': False,
+                'pode_visualizar_relatorios': False,
+            }
+        ]
+
+        cargos = {}
+        for cargo_data in cargos_data:
+            cargo, created = Cargo.objects.get_or_create(
+                nome=cargo_data['nome'],
+                defaults=cargo_data
+            )
+            cargos[cargo_data['nome']] = cargo
+            if created:
+                self.stdout.write(
+                    self.style.SUCCESS(f'Cargo "{cargo.nome}" criado!')
+                )
+
+        # Criar membros de teste
+        membros_data = [
+            {
+                'nome': 'Maria Silva',
+                'email': 'maria@igreja.com',
+                'cpf': '111.111.111-11',
+                'telefone': '(11) 11111-1111',
+                'senha': '123456',
+            },
+            {
+                'nome': 'João Santos',
+                'email': 'joao@igreja.com',
+                'cpf': '222.222.222-22',
+                'telefone': '(11) 22222-2222',
+                'senha': '123456',
             },
             {
                 'nome': 'Ana Costa',
-                'cpf': '456.789.123-00',
-                'telefone': '(11) 66666-6666',
-                'email': 'ana@email.com',
-                'status': 'inativo',
+                'email': 'ana@igreja.com',
+                'cpf': '333.333.333-33',
+                'telefone': '(11) 33333-3333',
+                'senha': '123456',
             },
+            {
+                'nome': 'Pedro Oliveira',
+                'email': 'pedro@igreja.com',
+                'cpf': '444.444.444-44',
+                'telefone': '(11) 44444-4444',
+                'senha': '123456',
+            }
         ]
 
         for membro_data in membros_data:
-            Membro.objects.get_or_create(
-                cpf=membro_data['cpf'],
+            membro, created = Membro.objects.get_or_create(
+                email=membro_data['email'],
                 defaults={
                     **membro_data,
+                    'status': 'ativo',
                     'cadastrado_por': admin,
+                    'endereco': 'Endereço de teste',
+                    'data_nascimento': '1990-01-01',
                 }
             )
+            if created:
+                self.stdout.write(
+                    self.style.SUCCESS(f'Membro "{membro.nome}" criado!')
+                )
 
-        # Criar alguns eventos de teste
+        # Criar eventos de teste
         eventos_data = [
             {
-                'titulo': 'Culto de Domingo',
-                'descricao': 'Culto matutino de domingo',
-                'data': '2024-01-15 09:00:00',
+                'titulo': 'Culto Dominical',
+                'descricao': 'Culto de domingo pela manhã',
+                'data': datetime.now() + timedelta(days=1),
                 'local': 'Igreja Central',
+                'organizador': usuario_admin,
             },
             {
                 'titulo': 'Reunião de Jovens',
-                'descricao': 'Reunião semanal dos jovens',
-                'data': '2024-01-20 19:00:00',
+                'descricao': 'Encontro semanal dos jovens',
+                'data': datetime.now() + timedelta(days=3),
                 'local': 'Salão de Jovens',
+                'organizador': usuario_admin,
             },
+            {
+                'titulo': 'Conferência de Mulheres',
+                'descricao': 'Conferência anual das mulheres',
+                'data': datetime.now() + timedelta(days=7),
+                'local': 'Auditório Principal',
+                'organizador': usuario_admin,
+            }
         ]
 
         for evento_data in eventos_data:
-            Evento.objects.get_or_create(
+            evento, created = Evento.objects.get_or_create(
                 titulo=evento_data['titulo'],
-                data=evento_data['data'],
-                defaults={
-                    **evento_data,
-                    'organizador': usuario,
-                }
+                defaults=evento_data
             )
+            if created:
+                self.stdout.write(
+                    self.style.SUCCESS(f'Evento "{evento.titulo}" criado!')
+                )
 
-        # Criar algumas transações de teste
+        # Criar transações de teste
         transacoes_data = [
             {
                 'tipo': 'entrada',
-                'categoria': 'Dízimo',
-                'valor': 500.00,
-                'data': '2024-01-10',
-                'descricao': 'Dízimo do mês de janeiro',
+                'categoria': 'dizimo',
+                'valor': 1000.00,
+                'descricao': 'Dízimos do mês',
+                'data': date.today(),
+                'registrado_por': admin,
             },
             {
                 'tipo': 'entrada',
-                'categoria': 'Oferta',
-                'valor': 200.00,
-                'data': '2024-01-12',
-                'descricao': 'Oferta especial',
+                'categoria': 'oferta',
+                'valor': 500.00,
+                'descricao': 'Ofertas especiais',
+                'data': date.today(),
+                'registrado_por': admin,
             },
             {
                 'tipo': 'saida',
-                'categoria': 'Manutenção',
-                'valor': 300.00,
-                'data': '2024-01-14',
-                'descricao': 'Reparo no sistema de som',
-            },
+                'categoria': 'manutencao',
+                'valor': 200.00,
+                'descricao': 'Manutenção do ar condicionado',
+                'data': date.today(),
+                'registrado_por': admin,
+            }
         ]
 
         for transacao_data in transacoes_data:
-            Transacao.objects.get_or_create(
-                categoria=transacao_data['categoria'],
+            transacao, created = Transacao.objects.get_or_create(
+                descricao=transacao_data['descricao'],
                 data=transacao_data['data'],
-                defaults={
-                    **transacao_data,
-                    'registrado_por': admin,
-                }
+                defaults=transacao_data
             )
-
-        # Criar algumas postagens de teste
-        postagens_data = [
-            {
-                'titulo': 'Bem-vindos ao novo sistema!',
-                'conteudo': 'Estamos felizes em apresentar o novo sistema de gestão da nossa igreja.',
-            },
-            {
-                'titulo': 'Próximo evento: Conferência de Jovens',
-                'conteudo': 'Não percam a conferência de jovens que acontecerá no próximo mês.',
-            },
-        ]
-
-        for postagem_data in postagens_data:
-            Postagem.objects.get_or_create(
-                titulo=postagem_data['titulo'],
-                defaults={
-                    **postagem_data,
-                    'autor': usuario,
-                }
-            )
+            if created:
+                self.stdout.write(
+                    self.style.SUCCESS(f'Transação "{transacao.descricao}" criada!')
+                )
 
         self.stdout.write(
-            self.style.SUCCESS('Dados de teste criados com sucesso!')
+            self.style.SUCCESS('\n✅ Dados de teste criados com sucesso!')
         )
-        self.stdout.write('Credenciais de login:')
-        self.stdout.write('Email: admin@igreja.com')
-        self.stdout.write('Senha: admin123')
+        self.stdout.write(
+            self.style.SUCCESS('\n📋 Resumo dos dados criados:')
+        )
+        self.stdout.write(f'👑 Administrador: admin@igreja.com / admin123')
+        self.stdout.write(f'👥 Membros: maria@igreja.com, joao@igreja.com, ana@igreja.com, pedro@igreja.com (senha: 123456)')
+        self.stdout.write(f'🎯 Cargos: Administrador, Secretário, Tesoureiro, Líder de Eventos, Membro')
+        self.stdout.write(f'📅 Eventos: Culto Dominical, Reunião de Jovens, Conferência de Mulheres')
+        self.stdout.write(f'💰 Transações: Dízimos, Ofertas, Manutenção')

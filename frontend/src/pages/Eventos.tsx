@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, MapPin, Users, Plus, Filter, Loader2 } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Plus, Filter, Loader2, Eye, CheckCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useEventos, useDeleteEvento } from "@/hooks/useEventos";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useConfirmPresence, useEventPresences } from "@/hooks/useEventPresence";
 import { toast } from "sonner";
 
 export default function Eventos() {
@@ -16,6 +18,19 @@ export default function Eventos() {
   });
   
   const deleteEventoMutation = useDeleteEvento();
+  const confirmPresenceMutation = useConfirmPresence();
+  const { hasPermission, canAccess, user } = usePermissions();
+  
+  // Buscar confirmações de presença do membro
+  const { data: presencas = [] } = useEventPresences(user?.id);
+  
+  // Verificar se o usuário pode gerenciar eventos
+  const canManageEvents = hasPermission('eventos') || canAccess('eventos');
+
+  // Função para verificar se o membro já confirmou presença em um evento
+  const isPresenceConfirmed = (eventoId: number) => {
+    return presencas.some((presenca: any) => presenca.evento === eventoId && presenca.confirmado);
+  };
 
   const handleDeleteEvento = async (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir este evento?')) {
@@ -25,6 +40,26 @@ export default function Eventos() {
       } catch (error) {
         toast.error('Erro ao excluir evento');
       }
+    }
+  };
+
+  const handleConfirmPresence = async (eventoId: number) => {
+    if (!user) {
+      toast.error('Usuário não encontrado');
+      return;
+    }
+
+    try {
+      await confirmPresenceMutation.mutateAsync({
+        evento: eventoId,
+        membro: user.id,
+        confirmado: true,
+        observacoes: 'Presença confirmada pelo membro'
+      });
+      toast.success('Presença confirmada com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao confirmar presença');
+      console.error('Erro ao confirmar presença:', error);
     }
   };
 
@@ -95,13 +130,15 @@ export default function Eventos() {
             Gerencie os eventos e atividades da sua igreja
           </p>
         </div>
-        <Button 
-          onClick={() => window.location.href = '/eventos/novo'}
-          className="gradient-primary text-white shadow-elegant hover:opacity-90"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Evento
-        </Button>
+        {canManageEvents && (
+          <Button 
+            onClick={() => window.location.href = '/eventos/novo'}
+            className="gradient-primary text-white shadow-elegant hover:opacity-90"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Evento
+          </Button>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -229,20 +266,61 @@ export default function Eventos() {
                       Evento
                     </Badge>
                     <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => window.location.href = `/eventos/${evento.id}/editar`}
-                      >
-                        Editar
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => window.location.href = `/eventos/${evento.id}`}
-                      >
-                        Ver Detalhes
-                      </Button>
+                      {canManageEvents ? (
+                        <>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => window.location.href = `/eventos/${evento.id}/editar`}
+                          >
+                            Editar
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => window.location.href = `/eventos/${evento.id}`}
+                          >
+                            Ver Detalhes
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => window.location.href = `/eventos/${evento.id}`}
+                          >
+                            <Eye className="mr-1 h-3 w-3" />
+                            Ver Detalhes
+                          </Button>
+                          {isPresenceConfirmed(evento.id) ? (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="border-green-500 text-green-600 bg-green-50"
+                              disabled
+                            >
+                              <CheckCircle className="mr-1 h-3 w-3" />
+                              Presença Confirmada
+                            </Button>
+                          ) : (
+                            <Button 
+                              variant="default" 
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700"
+                              onClick={() => handleConfirmPresence(evento.id)}
+                              disabled={confirmPresenceMutation.isPending}
+                            >
+                              {confirmPresenceMutation.isPending ? (
+                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                              ) : (
+                                <CheckCircle className="mr-1 h-3 w-3" />
+                              )}
+                              Confirmar Presença
+                            </Button>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -253,6 +331,53 @@ export default function Eventos() {
           )}
         </CardContent>
       </Card>
+
+      {/* Seção de Status de Presença para Membros */}
+      {!canManageEvents && user && (
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Minhas Confirmações de Presença
+            </CardTitle>
+            <CardDescription>
+              Eventos em que você confirmou presença
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {presencas.length === 0 ? (
+              <div className="text-center py-8">
+                <CheckCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-muted-foreground">Você ainda não confirmou presença em nenhum evento</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Confirme sua presença nos eventos acima para aparecer aqui
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {presencas.map((presenca: any) => {
+                  const evento = eventos.find(e => e.id === presenca.evento);
+                  if (!evento) return null;
+                  
+                  return (
+                    <div key={presenca.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                      <div>
+                        <p className="font-medium text-green-800">{evento.titulo}</p>
+                        <p className="text-sm text-green-600">
+                          {new Date(evento.data).toLocaleDateString('pt-BR')} às {evento.hora}
+                        </p>
+                      </div>
+                      <Badge className="bg-green-100 text-green-800">
+                        Confirmado
+                      </Badge>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

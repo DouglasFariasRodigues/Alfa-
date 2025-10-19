@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Edit, Phone, Mail, MapPin, Calendar, User, Briefcase, FileText, Shield } from 'lucide-react'
+import { usePermissions } from '@/hooks/usePermissions'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +14,10 @@ export default function DetalhesMembro() {
   const navigate = useNavigate()
   
   const { data: membro, isLoading, error } = useMembro(Number(id))
+  const { hasPermission, canAccess, isAdmin, user } = usePermissions()
+  
+  // Verificar se o usuário pode gerenciar membros
+  const canManageMembers = hasPermission('membros') || canAccess('membros') || isAdmin()
 
   if (isLoading) {
     return (
@@ -147,10 +152,12 @@ export default function DetalhesMembro() {
             </p>
           </div>
         </div>
-        <Button onClick={() => navigate(`/membros/${membro.id}/editar`)}>
-          <Edit className="h-4 w-4 mr-2" />
-          Editar Membro
-        </Button>
+        {canManageMembers && (
+          <Button onClick={() => navigate(`/membros/${membro.id}/editar`)}>
+            <Edit className="h-4 w-4 mr-2" />
+            Editar Membro
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -331,6 +338,42 @@ export default function DetalhesMembro() {
               </p>
               <p className="text-sm text-muted-foreground">Cargo</p>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Ações */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Ações</CardTitle>
+          <CardDescription>
+            Opções disponíveis para este membro
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-3">
+            {canManageMembers ? (
+              <>
+                <Button onClick={() => navigate(`/membros/${membro.id}/editar`)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar Membro
+                </Button>
+                <Button variant="outline">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Gerar Cartão
+                </Button>
+              </>
+            ) : (
+              <div className="text-center w-full py-4">
+                <p className="text-muted-foreground">
+                  Você pode apenas visualizar as informações deste membro.
+                </p>
+              </div>
+            )}
+            <Button variant="outline" onClick={() => navigate('/membros')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar para Membros
+            </Button>
           </div>
         </CardContent>
       </Card>

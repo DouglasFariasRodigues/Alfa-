@@ -2,7 +2,8 @@ from rest_framework import serializers
 from .models import (
     Membro, Admin, Usuario, Cargo, Evento, Postagem, 
     Transacao, Oferta, ONG, Grupo, Doacao, Igreja,
-    FotoEvento, FotoPostagem, DocumentoMembro, Transferencia
+    FotoEvento, FotoPostagem, DocumentoMembro, Transferencia,
+    EventoPresenca, EventoComentario
 )
 
 class CargoSerializer(serializers.ModelSerializer):
@@ -145,3 +146,31 @@ class TransferenciaCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transferencia
         exclude = ['created_at', 'updated_at', 'deleted_at', 'is_active', 'gerado_por']
+
+class EventoPresencaSerializer(serializers.ModelSerializer):
+    membro_nome = serializers.CharField(source='membro.nome', read_only=True)
+    evento_titulo = serializers.CharField(source='evento.titulo', read_only=True)
+    
+    class Meta:
+        model = EventoPresenca
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at', 'deleted_at', 'is_active', 'data_confirmacao']
+
+class EventoPresencaCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventoPresenca
+        exclude = ['created_at', 'updated_at', 'deleted_at', 'is_active', 'data_confirmacao']
+
+class EventoComentarioSerializer(serializers.ModelSerializer):
+    membro_nome = serializers.CharField(source='membro.nome', read_only=True)
+    evento_titulo = serializers.CharField(source='evento.titulo', read_only=True)
+    
+    class Meta:
+        model = EventoComentario
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at', 'deleted_at', 'is_active', 'data_comentario']
+
+class EventoComentarioCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventoComentario
+        exclude = ['created_at', 'updated_at', 'deleted_at', 'is_active', 'data_comentario']

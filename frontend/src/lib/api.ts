@@ -57,6 +57,7 @@ export interface MembroCreate {
   status: 'ativo' | 'inativo' | 'falecido' | 'afastado';
   data_batismo?: string;
   igreja_origem?: string;
+  senha: string;
   observacoes?: string;
 }
 
@@ -421,6 +422,98 @@ class ApiClient {
 
   async deleteCargo(id: number): Promise<void> {
     return this.request<void>(`/cargos/${id}/`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Métodos para upload de imagens
+  async uploadMembroFoto(formData: FormData, membroId?: number): Promise<any> {
+    const endpoint = membroId ? `/membros/${membroId}/upload-foto/` : '/membros/upload-foto/';
+    return this.request<any>(endpoint, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        // Não definir Content-Type para FormData, o browser define automaticamente
+      },
+    });
+  }
+
+  async uploadEventoFoto(formData: FormData, eventoId?: number): Promise<any> {
+    const endpoint = eventoId ? `/eventos/${eventoId}/upload-foto/` : '/eventos/upload-foto/';
+    return this.request<any>(endpoint, {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
+  async uploadPostagemFoto(formData: FormData, postagemId?: number): Promise<any> {
+    const endpoint = postagemId ? `/postagens/${postagemId}/upload-foto/` : '/postagens/upload-foto/';
+    return this.request<any>(endpoint, {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
+  async deleteImage(imageUrl: string, endpoint: 'membros' | 'eventos' | 'postagens', entityId: number): Promise<void> {
+    const baseEndpoint = endpoint === 'membros' ? '/membros' : endpoint === 'eventos' ? '/eventos' : '/postagens';
+    return this.request<void>(`${baseEndpoint}/${entityId}/delete-foto/`, {
+      method: 'DELETE',
+      body: JSON.stringify({ image_url: imageUrl }),
+    });
+  }
+
+  // Método para obter dados do usuário atual
+  async getCurrentUser(): Promise<any> {
+    return this.request<any>('/auth/me/');
+  }
+
+  // Método para login de membro
+  async loginMembro(credentials: { email: string; senha: string }): Promise<any> {
+    const response = await this.request<any>('/auth/login_membro/', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+
+    if (response.success && response.access_token && response.refresh_token) {
+      TokenManager.setTokens(response.access_token, response.refresh_token);
+    }
+
+    return response;
+  }
+
+  // Métodos para confirmação de presença em eventos
+  async getEventPresences(membroId?: number): Promise<any> {
+    const url = membroId ? `/eventos-presencas/?membro=${membroId}` : '/eventos-presencas/';
+    return this.request<any>(url);
+  }
+
+  async confirmEventPresence(data: { evento: number; membro: number; confirmado: boolean; observacoes?: string }): Promise<any> {
+    return this.request<any>('/eventos-presencas/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async cancelEventPresence(presenceId: number): Promise<any> {
+    return this.request<any>(`/eventos-presencas/${presenceId}/`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getEventComments(eventoId?: number): Promise<any> {
+    const url = eventoId ? `/eventos-comentarios/?evento=${eventoId}` : '/eventos-comentarios/';
+    return this.request<any>(url);
+  }
+
+  async createEventComment(data: { evento: number; membro: number; comentario: string }): Promise<any> {
+    return this.request<any>('/eventos-comentarios/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteEventComment(commentId: number): Promise<any> {
+    return this.request<any>(`/eventos-comentarios/${commentId}/`, {
       method: 'DELETE',
     });
   }

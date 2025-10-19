@@ -9,7 +9,8 @@ from django.db.models import Q
 from .models import (
     Membro, Admin, Usuario, Cargo, Evento, Postagem, 
     Transacao, Oferta, ONG, Grupo, Doacao, Igreja,
-    FotoEvento, FotoPostagem, DocumentoMembro, Transferencia
+    FotoEvento, FotoPostagem, DocumentoMembro, Transferencia,
+    EventoPresenca, EventoComentario
 )
 from .serializers import (
     MembroSerializer, MembroCreateSerializer, AdminSerializer, UsuarioSerializer,
@@ -18,7 +19,8 @@ from .serializers import (
     OfertaSerializer, OfertaCreateSerializer, ONGSerializer, GrupoSerializer,
     DoacaoSerializer, IgrejaSerializer, DocumentoMembroSerializer,
     TransferenciaSerializer, TransferenciaCreateSerializer, FotoEventoSerializer,
-    FotoPostagemSerializer
+    FotoPostagemSerializer, EventoPresencaSerializer, EventoPresencaCreateSerializer,
+    EventoComentarioSerializer, EventoComentarioCreateSerializer
 )
 
 class AuthViewSet(viewsets.ViewSet):
@@ -61,6 +63,86 @@ class AuthViewSet(viewsets.ViewSet):
                 'success': False,
                 'message': 'Usuário não encontrado'
             }, status=status.HTTP_401_UNAUTHORIZED)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def me(self, request):
+        """Obter dados do usuário atual"""
+        try:
+            # Tentar encontrar como admin primeiro
+            admin = Admin.objects.get(email=request.user.username)
+            return Response({
+                'id': admin.id,
+                'nome': admin.nome,
+                'email': admin.email,
+                'telefone': admin.telefone,
+                'cargo': AdminSerializer(admin).data.get('cargo'),
+                'is_admin': True,
+                'user_type': 'admin',
+                'date_joined': admin.date_joined,
+                'last_login': admin.last_login
+            })
+        except Admin.DoesNotExist:
+            try:
+                # Se não for admin, tentar como membro
+                membro = Membro.objects.get(email=request.user.username)
+                return Response({
+                    'id': membro.id,
+                    'nome': membro.nome,
+                    'email': membro.email,
+                    'telefone': membro.telefone,
+                    'cargo': MembroSerializer(membro).data.get('cargo'),
+                    'is_admin': False,
+                    'user_type': 'membro',
+                    'status': membro.status,
+                    'created_at': membro.created_at,
+                    'updated_at': membro.updated_at
+                })
+            except Membro.DoesNotExist:
+                return Response({
+                    'success': False,
+                    'message': 'Usuário não encontrado'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['post'], permission_classes=[])
+    def login_membro(self, request):
+        """Login de membro"""
+        email = request.data.get('email')
+        senha = request.data.get('senha')
+        
+        if not email or not senha:
+            return Response({
+                'success': False,
+                'message': 'Email e senha são obrigatórios'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            membro = Membro.objects.get(email=email)
+            if membro.senha == senha:  # Em produção, usar hash de senha
+                # Criar token JWT
+                user, created = User.objects.get_or_create(
+                    username=membro.email,
+                    defaults={'email': membro.email, 'is_staff': False}
+                )
+                refresh = RefreshToken.for_user(user)
+                
+                return Response({
+                    'success': True,
+                    'message': 'Login realizado com sucesso',
+                    'access_token': str(refresh.access_token),
+                    'refresh_token': str(refresh),
+                    'user': MembroSerializer(membro).data,
+                    'user_type': 'membro'
+                })
+            else:
+                return Response({
+                    'success': False,
+                    'message': 'Credenciais inválidas'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+        except Membro.DoesNotExist:
+            return Response({
+                'success': False,
+                'message': 'Membro não encontrado'
+            }, status=status.HTTP_404_NOT_FOUND)
 
 class MembroViewSet(viewsets.ModelViewSet):
     queryset = Membro.objects.all()
@@ -292,3 +374,45 @@ class DocumentoMembroViewSet(viewsets.ModelViewSet):
     queryset = DocumentoMembro.objects.all()
     serializer_class = DocumentoMembroSerializer
     permission_classes = [IsAuthenticated]
+
+class EventoPresencaViewSet(viewsets.ModelViewSet):
+    queryset = EventoPresenca.objects.all()
+    permission_classes = [IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return EventoPresencaCreateSerializer
+        return EventoPresencaSerializer
+    
+    def get_queryset(self):
+        queryset = EventoPresenca.objects.all()
+        evento_id = self.request.query_params.get('evento')
+        membro_id = self.request.query_params.get('membro')
+        
+        if evento_id:
+            queryset = queryset.filter(evento_id=evento_id)
+        if membro_id:
+            queryset = queryset.filter(membro_id=membro_id)
+            
+        return queryset.order_by('-data_confirmacao')
+
+class EventoComentarioViewSet(viewsets.ModelViewSet):
+    queryset = EventoComentario.objects.all()
+    permission_classes = [IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return EventoComentarioCreateSerializer
+        return EventoComentarioSerializer
+    
+    def get_queryset(self):
+        queryset = EventoComentario.objects.filter(aprovado=True)  # Só comentários aprovados
+        evento_id = self.request.query_params.get('evento')
+        membro_id = self.request.query_params.get('membro')
+        
+        if evento_id:
+            queryset = queryset.filter(evento_id=evento_id)
+        if membro_id:
+            queryset = queryset.filter(membro_id=membro_id)
+            
+        return queryset.order_by('-data_comentario')
