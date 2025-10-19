@@ -26,7 +26,7 @@ class BaseModel(models.Model):
 class Cargo(models.Model):
     nome = models.CharField(max_length=100, unique=True)
     descricao = models.TextField(blank=True, null=True)
-    criado_por = models.ForeignKey('Admin', on_delete=models.SET_NULL, null=True, related_name='cargos_criados')
+    criado_por = models.ForeignKey('app_alfa.Admin', on_delete=models.SET_NULL, null=True, related_name='cargos_criados')
     data_criacao = models.DateTimeField(auto_now_add=True)
 
     # Permissões
@@ -38,7 +38,7 @@ class Admin(models.Model):
     nome = models.CharField(max_length=100)
     email = models.EmailField()
     telefone = models.CharField(max_length=15, blank=True, null=True)
-    cargo = models.ForeignKey(Cargo, on_delete=models.SET_NULL, null=True, blank=True, related_name='admins')
+    cargo = models.ForeignKey('app_alfa.Cargo', on_delete=models.SET_NULL, null=True, blank=True, related_name='admins')
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
@@ -49,7 +49,7 @@ class Usuario(models.Model):
     username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(unique=True)
     telefone = models.CharField(max_length=15, blank=True, null=True)
-    cargo = models.ForeignKey(Cargo, on_delete=models.SET_NULL, null=True, blank=True, related_name='usuarios')
+    cargo = models.ForeignKey('app_alfa.Cargo', on_delete=models.SET_NULL, null=True, blank=True, related_name='usuarios')
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
@@ -85,7 +85,7 @@ class Membro(BaseModel):
     # Dados da igreja
     data_batismo = models.DateField(blank=True, null=True)
     igreja_origem = models.CharField(max_length=200, blank=True, null=True)
-    cadastrado_por = models.ForeignKey(Admin, on_delete=models.SET_NULL, null=True, blank=True, related_name='membros_cadastrados')
+    cadastrado_por = models.ForeignKey('app_alfa.Admin', on_delete=models.SET_NULL, null=True, blank=True, related_name='membros_cadastrados')
 
 class DocumentoMembro(models.Model):
     CARTAO_MEMBRO = 'cartao_membro'
@@ -97,11 +97,11 @@ class DocumentoMembro(models.Model):
         (REGISTRO, 'Registro de Membro'),
     ]
     
-    membro = models.ForeignKey(Membro, on_delete=models.CASCADE, related_name='documentos')
+    membro = models.ForeignKey('app_alfa.Membro', on_delete=models.CASCADE, related_name='documentos')
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
     arquivo = models.FileField(upload_to='documentos_membros/', blank=True, null=True)
     gerado_em = models.DateTimeField(auto_now_add=True)
-    gerado_por = models.ForeignKey(Admin, on_delete=models.SET_NULL, null=True, related_name='documentos_gerados')
+    gerado_por = models.ForeignKey('app_alfa.Admin', on_delete=models.SET_NULL, null=True, related_name='documentos_gerados')
 
 class Grupo(models.Model):
     nome = models.CharField(max_length=100)
@@ -111,8 +111,8 @@ class Doacao(models.Model):
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     data = models.DateField(auto_now_add=True)
     tipo = models.CharField(max_length=50)
-    membro = models.ForeignKey(Membro, related_name='doacoes', on_delete=models.CASCADE)
-    grupo = models.ForeignKey(Grupo, on_delete=models.CASCADE, related_name='doacoes')
+    membro = models.ForeignKey('app_alfa.Membro', related_name='doacoes', on_delete=models.CASCADE)
+    grupo = models.ForeignKey('app_alfa.Grupo', on_delete=models.CASCADE, related_name='doacoes')
 
 class Igreja(models.Model):
     nome = models.CharField(max_length=100)
@@ -124,11 +124,11 @@ class Evento(models.Model):
     descricao = models.TextField()
     data = models.DateTimeField()
     local = models.CharField(max_length=255, blank=True, null=True)
-    organizador = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='eventos')
+    organizador = models.ForeignKey('app_alfa.Usuario', on_delete=models.CASCADE, related_name='eventos')
     foto = models.ImageField(upload_to='eventos_fotos/', blank=True, null=True)
 
 class FotoEvento(models.Model):
-    evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='fotos')
+    evento = models.ForeignKey('app_alfa.Evento', on_delete=models.CASCADE, related_name='fotos')
     imagem = models.ImageField(upload_to='eventos_fotos/')
     descricao = models.CharField(max_length=255, blank=True, null=True)
     data_upload = models.DateTimeField(auto_now_add=True)
@@ -136,11 +136,11 @@ class FotoEvento(models.Model):
 class Postagem(models.Model):
     titulo = models.CharField(max_length=200)
     conteudo = models.TextField()
-    autor = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='postagens')
+    autor = models.ForeignKey('app_alfa.Usuario', on_delete=models.CASCADE, related_name='postagens')
     data_publicacao = models.DateTimeField(auto_now_add=True)
 
 class FotoPostagem(models.Model):
-    postagem = models.ForeignKey(Postagem, on_delete=models.CASCADE, related_name='fotos')
+    postagem = models.ForeignKey('app_alfa.Postagem', on_delete=models.CASCADE, related_name='fotos')
     imagem = models.ImageField(upload_to='postagens_fotos/')
     descricao = models.CharField(max_length=255, blank=True, null=True)
     data_upload = models.DateTimeField(auto_now_add=True)
@@ -160,12 +160,12 @@ class Oferta(BaseModel):
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     data = models.DateField(auto_now_add=True)
     descricao = models.TextField(blank=True, null=True)
-    registrado_por = models.ForeignKey(Admin, on_delete=models.SET_NULL, null=True, related_name='ofertas_registradas')
+    registrado_por = models.ForeignKey('app_alfa.Admin', on_delete=models.SET_NULL, null=True, related_name='ofertas_registradas')
     is_publico = models.BooleanField(default=True)
 
 class DistribuicaoOferta(models.Model):
-    oferta = models.ForeignKey(Oferta, on_delete=models.CASCADE, related_name='distribuicoes')
-    ong = models.ForeignKey(ONG, on_delete=models.CASCADE, related_name='distribuicoes', blank=True, null=True)
+    oferta = models.ForeignKey('app_alfa.Oferta', on_delete=models.CASCADE, related_name='distribuicoes')
+    ong = models.ForeignKey('app_alfa.ONG', on_delete=models.CASCADE, related_name='distribuicoes', blank=True, null=True)
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     destino = models.CharField(max_length=200)
     meio_envio = models.CharField(max_length=100, blank=True, null=True)
@@ -173,12 +173,12 @@ class DistribuicaoOferta(models.Model):
     comprovante = models.FileField(upload_to='comprovantes_ofertas/', blank=True, null=True)
 
 class Transferencia(BaseModel):
-    membro = models.ForeignKey(Membro, on_delete=models.CASCADE)
-    igreja_origem = models.ForeignKey(Igreja, on_delete=models.CASCADE, related_name='transferencias_origem')
-    igreja_destino = models.ForeignKey(Igreja, on_delete=models.CASCADE, related_name='transferencias_destino')
+    membro = models.ForeignKey('app_alfa.Membro', on_delete=models.CASCADE)
+    igreja_origem = models.ForeignKey('app_alfa.Igreja', on_delete=models.CASCADE, related_name='transferencias_origem')
+    igreja_destino = models.ForeignKey('app_alfa.Igreja', on_delete=models.CASCADE, related_name='transferencias_destino')
     data_transferencia = models.DateField()
     motivo = models.TextField(blank=True)
-    gerado_por = models.ForeignKey(Admin, on_delete=models.SET_NULL, null=True, related_name='transferencias_geradas')
+    gerado_por = models.ForeignKey('app_alfa.Admin', on_delete=models.SET_NULL, null=True, related_name='transferencias_geradas')
 
 class Transacao(BaseModel):
     ENTRADA = 'entrada'
@@ -195,4 +195,4 @@ class Transacao(BaseModel):
     descricao = models.TextField(blank=True, null=True)
     metodo_pagamento = models.CharField(max_length=50, blank=True, null=True)
     observacoes = models.TextField(blank=True, null=True)
-    registrado_por = models.ForeignKey(Admin, on_delete=models.SET_NULL, null=True, related_name='transacoes_registradas')
+    registrado_por = models.ForeignKey('app_alfa.Admin', on_delete=models.SET_NULL, null=True, related_name='transacoes_registradas')

@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('app_Alfa', '0002_transacao'),
+        ('app_alfa', '0002_transacao'),
     ]
 
     operations = [
@@ -29,11 +29,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='admin',
             name='cargo',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='admins', to='app_Alfa.cargo'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='admins', to='app_alfa.cargo'),
         ),
         migrations.AlterField(
             model_name='usuario',
             name='cargo',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='usuarios', to='app_Alfa.cargo'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='usuarios', to='app_alfa.cargo'),
         ),
     ]

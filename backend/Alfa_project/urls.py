@@ -16,21 +16,50 @@ Incluindo outra URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-
-from django.urls import path, include
-from app_Alfa import views
+from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from app_alfa import views
+from app_alfa.viewsets import (
+    AuthViewSet, MembroViewSet, EventoViewSet, PostagemViewSet,
+    TransacaoViewSet, OfertaViewSet, CargoViewSet, AdminViewSet,
+    ONGViewSet, IgrejaViewSet, GrupoViewSet, DoacaoViewSet,
+    TransferenciaViewSet, FotoEventoViewSet, FotoPostagemViewSet,
+    DocumentoMembroViewSet
+)
+
+# Configurar router para viewsets
+router = DefaultRouter()
+router.register(r'auth', AuthViewSet, basename='auth')
+router.register(r'membros', MembroViewSet)
+router.register(r'eventos', EventoViewSet)
+router.register(r'postagens', PostagemViewSet)
+router.register(r'transacoes', TransacaoViewSet)
+router.register(r'ofertas', OfertaViewSet)
+router.register(r'cargos', CargoViewSet)
+router.register(r'admins', AdminViewSet)
+router.register(r'ongs', ONGViewSet)
+router.register(r'igrejas', IgrejaViewSet)
+router.register(r'grupos', GrupoViewSet)
+router.register(r'doacoes', DoacaoViewSet)
+router.register(r'transferencias', TransferenciaViewSet)
+router.register(r'fotos-eventos', FotoEventoViewSet)
+router.register(r'fotos-postagens', FotoPostagemViewSet)
+router.register(r'documentos-membros', DocumentoMembroViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # JWT Authentication
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    
+    # API Routes
+    path('api/', include(router.urls)),
+    
+    # Legacy endpoints (manter para compatibilidade)
     path('api/gerar-pdf-transferencia/<int:transferencia_id>/', views.gerar_pdf_transferencia, name='gerar_pdf_transferencia'),
     path('api/gerar-cartao-membro/<int:membro_id>/', views.gerar_cartao_membro, name='gerar_cartao_membro'),
-    path('api/transacoes/', views.transacao_create, name='transacao_create'),
-    path('api/eventos/', views.evento_create, name='evento_create'),
-    path('api/posts/', views.postagem_create, name='postagem_create'),
 ]

@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('app_Alfa', '0001_initial'),
+        ('app_alfa', '0001_initial'),
     ]
 
     operations = [
@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('descricao', models.TextField(blank=True, null=True)),
                 ('metodo_pagamento', models.CharField(blank=True, max_length=50, null=True)),
                 ('observacoes', models.TextField(blank=True, null=True)),
-                ('registrado_por', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='transacoes_registradas', to='app_Alfa.admin')),
+                ('registrado_por', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='transacoes_registradas', to='app_alfa.admin')),
             ],
             options={
                 'abstract': False,
