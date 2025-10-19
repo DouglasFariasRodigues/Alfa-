@@ -5,7 +5,8 @@ import {
   DollarSign, 
   FileText, 
   Settings,
-  Shield
+  Shield,
+  Newspaper
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import logoAlfa from "@/assets/logo_alfa.png";
@@ -31,6 +32,7 @@ const mainItems = [
 ];
 
 const otherItems = [
+  { title: "Postagens", url: "/postagens", icon: Newspaper },
   { title: "Cargos", url: "/cargos", icon: Shield },
   { title: "Documentos", url: "/documentos", icon: FileText },
   { title: "Configurações", url: "/configuracoes", icon: Settings },

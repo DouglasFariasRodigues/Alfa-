@@ -23,6 +23,9 @@ import Configuracoes from "./pages/Configuracoes";
 import Cargos from "./pages/Cargos";
 import NovoCargo from "./pages/NovoCargo";
 import DetalhesCargo from "./pages/DetalhesCargo";
+import Postagens from "./pages/Postagens";
+import NovaPostagem from "./pages/NovaPostagem";
+import DetalhesPostagem from "./pages/DetalhesPostagem";
 import NotFound from "./pages/NotFound";
 // Páginas para membros comuns (visualização)
 import MembrosVisualizacao from "./pages/MembrosVisualizacao";
@@ -130,6 +133,28 @@ const App = () => (
           <Route path="/cargos/editar/:id" element={
             <ProtectedRoute>
               <AppLayout><NovoCargo /></AppLayout>
+            </ProtectedRoute>
+          } />
+          
+          {/* Rotas de Postagens */}
+          <Route path="/postagens" element={
+            <ProtectedRoute>
+              <AppLayout><Postagens /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/postagens/nova" element={
+            <ProtectedRoute>
+              <AppLayout><NovaPostagem /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/postagens/editar/:id" element={
+            <ProtectedRoute>
+              <AppLayout><NovaPostagem /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/postagens/:id" element={
+            <ProtectedRoute>
+              <AppLayout><DetalhesPostagem /></AppLayout>
             </ProtectedRoute>
           } />
           

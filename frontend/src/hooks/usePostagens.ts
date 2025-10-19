@@ -2,9 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient, Postagem, PostagemCreate } from '@/lib/api';
 
 // Hook para buscar postagens
-export const usePostagens = () => {
+export const usePostagens = (params?: { search?: string }) => {
   return useQuery({
-    queryKey: ['postagens'],
+    queryKey: ['postagens', params],
     queryFn: () => apiClient.getPostagens(),
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
