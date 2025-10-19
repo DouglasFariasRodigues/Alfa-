@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, DollarSign, PieChart, Plus, Download } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, PieChart, Plus, Download, Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -10,58 +10,51 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-const transacoes = [
-  {
-    id: 1,
-    tipo: "Entrada",
-    categoria: "Dízimo",
-    valor: 2500.00,
-    data: "2024-01-03",
-    descricao: "Dízimos coletados no culto",
-    metodo: "Dinheiro"
-  },
-  {
-    id: 2,
-    tipo: "Entrada",
-    categoria: "Oferta",
-    valor: 850.00,
-    data: "2024-01-03",
-    descricao: "Ofertas especiais",
-    metodo: "PIX"
-  },
-  {
-    id: 3,
-    tipo: "Saída",
-    categoria: "Manutenção",
-    valor: 450.00,
-    data: "2024-01-02",
-    descricao: "Reparo do sistema de som",
-    metodo: "Transferência"
-  },
-  {
-    id: 4,
-    tipo: "Saída",
-    categoria: "Utilidades",
-    valor: 320.00,
-    data: "2024-01-02",
-    descricao: "Conta de luz",
-    metodo: "Débito"
-  }
-];
-
-const categorias = [
-  { nome: "Dízimos", valor: 25800, percentual: 45, cor: "gradient-primary" },
-  { nome: "Ofertas", valor: 12400, percentual: 22, cor: "bg-blue-500" },
-  { nome: "Doações", valor: 8600, percentual: 15, cor: "bg-green-500" },
-  { nome: "Eventos", valor: 5200, percentual: 9, cor: "bg-yellow-500" },
-  { nome: "Outros", valor: 4800, percentual: 9, cor: "bg-purple-500" }
-];
+import { useTransacoes } from "@/hooks/useTransacoes";
 
 export default function Financas() {
-  const totalEntradas = 52000;
-  const totalSaidas = 18500;
+  // Buscar transações da API
+  const { data: transacoes = [], isLoading, error } = useTransacoes();
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600">Erro ao carregar transações</h2>
+          <p className="text-gray-600">Tente recarregar a página</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Calcular estatísticas
+  const totalEntradas = transacoes
+    .filter(t => t.tipo === 'entrada')
+    .reduce((sum, t) => sum + parseFloat(t.valor.toString()), 0);
+  
+  const totalSaidas = transacoes
+    .filter(t => t.tipo === 'saida')
+    .reduce((sum, t) => sum + parseFloat(t.valor.toString()), 0);
+  
   const saldoAtual = totalEntradas - totalSaidas;
+
+  // Calcular categorias
+  const categoriasMap = new Map();
+  transacoes
+    .filter(t => t.tipo === 'entrada')
+    .forEach(t => {
+      const valor = parseFloat(t.valor.toString());
+      categoriasMap.set(t.categoria, (categoriasMap.get(t.categoria) || 0) + valor);
+    });
+
+  const categorias = Array.from(categoriasMap.entries()).map(([nome, valor]) => ({
+    nome,
+    valor,
+    percentual: totalEntradas > 0 ? Math.round((valor / totalEntradas) * 100) : 0,
+    cor: nome === 'Dízimo' ? 'gradient-primary' : 
+         nome === 'Oferta' ? 'bg-blue-500' :
+         nome === 'Doação' ? 'bg-green-500' : 'bg-purple-500'
+  }));
 
   return (
     <div className="p-6 space-y-6">
@@ -143,7 +136,15 @@ export default function Financas() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {categorias.map((categoria, index) => (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="ml-2">Carregando...</span>
+              </div>
+            ) : categorias.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">Nenhuma transação de entrada encontrada</p>
+            ) : (
+              categorias.map((categoria, index) => (
               <div key={index} className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium">{categoria.nome}</span>
@@ -163,7 +164,8 @@ export default function Financas() {
                   ></div>
                 </div>
               </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
 
@@ -176,35 +178,50 @@ export default function Financas() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Data</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {transacoes.slice(0, 5).map((transacao) => (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="ml-2">Carregando transações...</span>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Data</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {transacoes.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-8">
+                        <p className="text-muted-foreground">Nenhuma transação encontrada</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    transacoes.slice(0, 5).map((transacao) => (
                   <TableRow key={transacao.id} className="hover:bg-accent/50 transition-smooth">
                     <TableCell>
                       <Badge
-                        variant={transacao.tipo === "Entrada" ? "default" : "secondary"}
-                        className={transacao.tipo === "Entrada" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}
+                        variant={transacao.tipo === "entrada" ? "default" : "secondary"}
+                        className={transacao.tipo === "entrada" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}
                       >
-                        {transacao.tipo}
+                        {transacao.tipo === "entrada" ? "Entrada" : "Saída"}
                       </Badge>
                     </TableCell>
                     <TableCell className="font-medium">{transacao.categoria}</TableCell>
-                    <TableCell className={transacao.tipo === "Entrada" ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
-                      {transacao.tipo === "Entrada" ? "+" : "-"}R$ {transacao.valor.toLocaleString('pt-BR')}
+                    <TableCell className={transacao.tipo === "entrada" ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
+                      {transacao.tipo === "entrada" ? "+" : "-"}R$ {parseFloat(transacao.valor.toString()).toLocaleString('pt-BR')}
                     </TableCell>
                     <TableCell>{new Date(transacao.data).toLocaleDateString('pt-BR')}</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -218,44 +235,59 @@ export default function Financas() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Método</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transacoes.map((transacao) => (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="ml-2">Carregando transações...</span>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Método</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transacoes.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8">
+                      <p className="text-muted-foreground">Nenhuma transação encontrada</p>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  transacoes.map((transacao) => (
                 <TableRow key={transacao.id} className="hover:bg-accent/50 transition-smooth">
                   <TableCell>{new Date(transacao.data).toLocaleDateString('pt-BR')}</TableCell>
                   <TableCell>
                     <Badge
-                      variant={transacao.tipo === "Entrada" ? "default" : "secondary"}
-                      className={transacao.tipo === "Entrada" ? 
+                      variant={transacao.tipo === "entrada" ? "default" : "secondary"}
+                      className={transacao.tipo === "entrada" ? 
                         "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : 
                         "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                       }
                     >
-                      {transacao.tipo}
+                      {transacao.tipo === "entrada" ? "Entrada" : "Saída"}
                     </Badge>
                   </TableCell>
                   <TableCell className="font-medium">{transacao.categoria}</TableCell>
-                  <TableCell>{transacao.descricao}</TableCell>
-                  <TableCell>{transacao.metodo}</TableCell>
+                  <TableCell>{transacao.descricao || 'Sem descrição'}</TableCell>
+                  <TableCell>{transacao.metodo_pagamento || 'Não informado'}</TableCell>
                   <TableCell className={`text-right font-medium ${
-                    transacao.tipo === "Entrada" ? "text-green-600" : "text-red-600"
+                    transacao.tipo === "entrada" ? "text-green-600" : "text-red-600"
                   }`}>
-                    {transacao.tipo === "Entrada" ? "+" : "-"}R$ {transacao.valor.toLocaleString('pt-BR')}
+                    {transacao.tipo === "entrada" ? "+" : "-"}R$ {parseFloat(transacao.valor.toString()).toLocaleString('pt-BR')}
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

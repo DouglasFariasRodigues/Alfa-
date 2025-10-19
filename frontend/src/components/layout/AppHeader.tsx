@@ -11,9 +11,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Bell, User, LogOut, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useLogout } from "@/hooks/useAuth";
 
 export function AppHeader() {
   const { theme, setTheme } = useTheme();
+  const logoutMutation = useLogout();
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
 
   return (
     <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
@@ -63,7 +69,7 @@ export function AppHeader() {
                 <span>Perfil</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Sair</span>
               </DropdownMenuItem>

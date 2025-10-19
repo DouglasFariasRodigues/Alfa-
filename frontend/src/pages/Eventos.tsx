@@ -2,55 +2,62 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, MapPin, Users, Plus, Filter } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Plus, Filter, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-
-const eventos = [
-  {
-    id: 1,
-    titulo: "Culto de Domingo",
-    descricao: "Culto dominical com pregação e louvor",
-    data: "2024-01-07",
-    hora: "10:00",
-    local: "Templo Principal",
-    categoria: "Culto",
-    confirmados: 450,
-    capacidade: 500,
-    status: "Confirmado"
-  },
-  {
-    id: 2,
-    titulo: "Reunião de Oração",
-    descricao: "Momento de oração e comunhão",
-    data: "2024-01-04",
-    hora: "19:30",
-    local: "Salão de Eventos",
-    categoria: "Oração",
-    confirmados: 120,
-    capacidade: 150,
-    status: "Confirmado"
-  },
-  {
-    id: 3,
-    titulo: "Retiro de Jovens",
-    descricao: "Retiro espiritual para jovens da igreja",
-    data: "2024-01-13",
-    hora: "08:00",
-    local: "Chácara São João",
-    categoria: "Retiro",
-    confirmados: 85,
-    capacidade: 100,
-    status: "Planejamento"
-  }
-];
+import { useEventos, useDeleteEvento } from "@/hooks/useEventos";
+import { toast } from "sonner";
 
 export default function Eventos() {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredEventos = eventos.filter(evento =>
-    evento.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    evento.categoria.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Buscar eventos da API
+  const { data: eventos = [], isLoading, error } = useEventos({ 
+    search: searchTerm || undefined 
+  });
+  
+  const deleteEventoMutation = useDeleteEvento();
+
+  const handleDeleteEvento = async (id: number) => {
+    if (window.confirm('Tem certeza que deseja excluir este evento?')) {
+      try {
+        await deleteEventoMutation.mutateAsync(id);
+        toast.success('Evento excluído com sucesso!');
+      } catch (error) {
+        toast.error('Erro ao excluir evento');
+      }
+    }
+  };
+
+  // Calcular estatísticas
+  const totalEventos = eventos.length;
+  const eventosEsteMes = eventos.filter(e => {
+    const dataEvento = new Date(e.data);
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    return dataEvento.getMonth() === currentMonth && dataEvento.getFullYear() === currentYear;
+  }).length;
+
+  // Próximo evento
+  const agora = new Date();
+  const proximosEventos = eventos
+    .filter(e => new Date(e.data) > agora)
+    .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+  
+  const proximoEvento = proximosEventos[0];
+  const diasParaProximo = proximoEvento 
+    ? Math.ceil((new Date(proximoEvento.data).getTime() - agora.getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600">Erro ao carregar eventos</h2>
+          <p className="text-gray-600">Tente recarregar a página</p>
+        </div>
+      </div>
+    );
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -101,29 +108,29 @@ export default function Eventos() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card className="shadow-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Eventos este Mês</CardTitle>
+            <CardTitle className="text-sm font-medium">Total de Eventos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-green-600">+2 vs mês anterior</p>
+            <div className="text-2xl font-bold">{totalEventos}</div>
+            <p className="text-xs text-green-600">{eventosEsteMes} este mês</p>
           </CardContent>
         </Card>
         <Card className="shadow-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Participantes Esperados</CardTitle>
+            <CardTitle className="text-sm font-medium">Eventos Este Mês</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,250</div>
-            <p className="text-xs text-muted-foreground">Across all events</p>
+            <div className="text-2xl font-bold">{eventosEsteMes}</div>
+            <p className="text-xs text-muted-foreground">Programados</p>
           </CardContent>
         </Card>
         <Card className="shadow-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Taxa de Ocupação</CardTitle>
+            <CardTitle className="text-sm font-medium">Próximos Eventos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">87%</div>
-            <p className="text-xs text-green-600">Alta participação</p>
+            <div className="text-2xl font-bold">{proximosEventos.length}</div>
+            <p className="text-xs text-green-600">Agendados</p>
           </CardContent>
         </Card>
         <Card className="shadow-card">
@@ -131,7 +138,7 @@ export default function Eventos() {
             <CardTitle className="text-sm font-medium">Próximo Evento</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4</div>
+            <div className="text-2xl font-bold">{diasParaProximo}</div>
             <p className="text-xs text-muted-foreground">dias</p>
           </CardContent>
         </Card>
@@ -164,8 +171,19 @@ export default function Eventos() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredEventos.map((evento) => (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="ml-2">Carregando eventos...</span>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {eventos.length === 0 ? (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-muted-foreground">Nenhum evento encontrado</p>
+                </div>
+              ) : (
+                eventos.map((evento) => (
               <Card key={evento.id} className="shadow-card hover:shadow-elegant transition-smooth">
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between">
@@ -191,21 +209,24 @@ export default function Eventos() {
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span>{evento.hora}</span>
+                      <span>{new Date(evento.data).toLocaleTimeString('pt-BR', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span>{evento.local}</span>
+                      <span>{evento.local || 'Local não informado'}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Users className="h-4 w-4 text-muted-foreground" />
-                      <span>{evento.confirmados}/{evento.capacidade} confirmados</span>
+                      <span>Organizado por: {evento.organizador_nome}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <Badge className={getCategoriaColor(evento.categoria)}>
-                      {evento.categoria}
+                    <Badge className="gradient-primary text-white">
+                      Evento
                     </Badge>
                     <div className="flex gap-2">
                       <Button 
@@ -224,24 +245,12 @@ export default function Eventos() {
                       </Button>
                     </div>
                   </div>
-
-                  {/* Progress bar for capacity */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span>Ocupação</span>
-                      <span>{Math.round((evento.confirmados / evento.capacidade) * 100)}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="gradient-primary h-2 rounded-full transition-all"
-                        style={{ width: `${(evento.confirmados / evento.capacidade) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+                ))
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
