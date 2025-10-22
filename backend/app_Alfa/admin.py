@@ -29,9 +29,14 @@ class UsuarioAdmin(admin.ModelAdmin):
 
 @admin.register(Membro)
 class MembroAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nome', 'cpf', 'status', 'cadastrado_por')
-    search_fields = ('nome', 'cpf', 'email', 'dados_completos')
-    list_filter = ('status', 'data_batismo')
+    list_display = ('id', 'nome', 'cpf', 'get_cargo_nome', 'status', 'cadastrado_por')
+    search_fields = ('nome', 'cpf', 'email', 'dados_completos', 'cargo__nome')
+    list_filter = ('status', 'data_batismo', 'cargo')
+    
+    def get_cargo_nome(self, obj):
+        return obj.cargo.nome if obj.cargo else 'Sem cargo'
+    get_cargo_nome.short_description = 'Cargo'
+    get_cargo_nome.admin_order_field = 'cargo__nome'
 
 @admin.register(DocumentoMembro)
 class DocumentoMembroAdmin(admin.ModelAdmin):

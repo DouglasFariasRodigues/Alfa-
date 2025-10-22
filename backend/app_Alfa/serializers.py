@@ -29,6 +29,8 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
 class MembroSerializer(serializers.ModelSerializer):
     cadastrado_por_nome = serializers.CharField(source='cadastrado_por.nome', read_only=True)
+    cargo_nome = serializers.CharField(source='cargo.nome', read_only=True)
+    cargo = CargoSerializer(read_only=True)  # Incluir dados completos do cargo
     
     class Meta:
         model = Membro

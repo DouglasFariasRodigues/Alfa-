@@ -91,6 +91,7 @@ class Membro(BaseModel):
     # Dados da igreja
     data_batismo = models.DateField(blank=True, null=True)
     igreja_origem = models.CharField(max_length=200, blank=True, null=True)
+    cargo = models.ForeignKey('app_alfa.Cargo', on_delete=models.SET_NULL, null=True, blank=True, related_name='membros', help_text="Cargo do membro na igreja")
     cadastrado_por = models.ForeignKey('app_alfa.Admin', on_delete=models.SET_NULL, null=True, blank=True, related_name='membros_cadastrados')
 
 class DocumentoMembro(models.Model):

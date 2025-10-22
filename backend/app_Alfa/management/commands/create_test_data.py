@@ -121,12 +121,17 @@ class Command(BaseCommand):
             }
         ]
 
-        for membro_data in membros_data:
+        for i, membro_data in enumerate(membros_data):
+            # Atribuir cargos diferentes para cada membro
+            cargo_nomes = ['Membro', 'Líder de Eventos', 'Membro', 'Membro']
+            cargo = cargos.get(cargo_nomes[i], cargos['Membro'])
+            
             membro, created = Membro.objects.get_or_create(
                 email=membro_data['email'],
                 defaults={
                     **membro_data,
                     'status': 'ativo',
+                    'cargo': cargo,  # Atribuir cargo ao membro
                     'cadastrado_por': admin,
                     'endereco': 'Endereço de teste',
                     'data_nascimento': '1990-01-01',
@@ -212,13 +217,13 @@ class Command(BaseCommand):
                 )
 
         self.stdout.write(
-            self.style.SUCCESS('\n✅ Dados de teste criados com sucesso!')
+            self.style.SUCCESS('\nDados de teste criados com sucesso!')
         )
         self.stdout.write(
-            self.style.SUCCESS('\n📋 Resumo dos dados criados:')
+            self.style.SUCCESS('\nResumo dos dados criados:')
         )
-        self.stdout.write(f'👑 Administrador: admin@igreja.com / admin123')
-        self.stdout.write(f'👥 Membros: maria@igreja.com, joao@igreja.com, ana@igreja.com, pedro@igreja.com (senha: 123456)')
-        self.stdout.write(f'🎯 Cargos: Administrador, Secretário, Tesoureiro, Líder de Eventos, Membro')
-        self.stdout.write(f'📅 Eventos: Culto Dominical, Reunião de Jovens, Conferência de Mulheres')
-        self.stdout.write(f'💰 Transações: Dízimos, Ofertas, Manutenção')
+        self.stdout.write(f'Administrador: admin@igreja.com / admin123')
+        self.stdout.write(f'Membros: maria@igreja.com, joao@igreja.com, ana@igreja.com, pedro@igreja.com (senha: 123456)')
+        self.stdout.write(f'Cargos: Administrador, Secretário, Tesoureiro, Líder de Eventos, Membro')
+        self.stdout.write(f'Eventos: Culto Dominical, Reunião de Jovens, Conferência de Mulheres')
+        self.stdout.write(f'Transações: Dízimos, Ofertas, Manutenção')

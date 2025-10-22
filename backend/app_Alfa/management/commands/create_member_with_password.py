@@ -49,6 +49,7 @@ class Command(BaseCommand):
                 'data_nascimento': '1990-01-01',
                 'status': 'ativo',
                 'senha': '123456',  # Senha simples para teste
+                'cargo': cargo,  # Atribuir cargo ao membro
                 'cadastrado_por': admin,
                 'dados_completos': 'Membro criado para teste do sistema de login'
             }

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, MapPin, Users, Plus, Filter, Loader2, Eye, CheckCircle } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Plus, Filter, Loader2, Eye, CheckCircle, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useEventos, useDeleteEvento } from "@/hooks/useEventos";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -281,6 +281,20 @@ export default function Eventos() {
                             onClick={() => window.location.href = `/eventos/${evento.id}`}
                           >
                             Ver Detalhes
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                            onClick={() => handleDeleteEvento(evento.id)}
+                            disabled={deleteEventoMutation.isPending}
+                          >
+                            {deleteEventoMutation.isPending ? (
+                              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="mr-1 h-3 w-3" />
+                            )}
+                            Remover
                           </Button>
                         </>
                       ) : (
