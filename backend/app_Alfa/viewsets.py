@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django.db.models import Q
+from django.utils import timezone
 from .models import (
     Membro, Admin, Usuario, Cargo, Evento, Postagem, 
     Transacao, Oferta, ONG, Grupo, Doacao, Igreja,
@@ -38,7 +39,12 @@ class AuthViewSet(viewsets.ViewSet):
         
         try:
             admin = Admin.objects.get(email=email)
-            if admin.senha == senha:  # Em produção, usar hash de senha
+            from django.contrib.auth.hashers import check_password
+            if check_password(senha, admin.senha):  # Usar hash de senha
+                # Atualizar last_login
+                admin.last_login = timezone.now()
+                admin.save()
+                
                 # Criar token JWT
                 user, created = User.objects.get_or_create(
                     username=admin.email,
@@ -117,7 +123,12 @@ class AuthViewSet(viewsets.ViewSet):
         
         try:
             membro = Membro.objects.get(email=email)
-            if membro.senha == senha:  # Em produção, usar hash de senha
+            from django.contrib.auth.hashers import check_password
+            if check_password(senha, membro.senha):  # Usar hash de senha
+                # Atualizar last_login
+                membro.last_login = timezone.now()
+                membro.save()
+                
                 # Criar token JWT
                 user, created = User.objects.get_or_create(
                     username=membro.email,

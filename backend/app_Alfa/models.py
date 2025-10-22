@@ -1,5 +1,57 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.hashers import make_password, check_password
+from django.core.exceptions import ValidationError
+import re
+
+def validate_password_strength(value):
+    """Validador de força de senha"""
+    if len(value) < 6:
+        raise ValidationError('A senha deve ter pelo menos 6 caracteres.')
+    
+    if not re.search(r'[A-Za-z]', value):
+        raise ValidationError('A senha deve conter pelo menos uma letra.')
+    
+    if not re.search(r'\d', value):
+        raise ValidationError('A senha deve conter pelo menos um número.')
+    
+    # Verificar senhas comuns
+    common_passwords = ['123456', 'password', 'admin', 'senha', '123123']
+    if value.lower() in common_passwords:
+        raise ValidationError('Esta senha é muito comum. Escolha uma senha mais segura.')
+
+class PasswordHashMixin:
+    """Mixin para hash automático de senhas com integração Django Auth"""
+    
+    def set_password(self, raw_password):
+        """Define uma senha com hash automático"""
+        self.senha = make_password(raw_password)
+    
+    def check_password(self, raw_password):
+        """Verifica se a senha está correta"""
+        return check_password(raw_password, self.senha)
+    
+    def save(self, *args, **kwargs):
+        # Se a senha foi alterada e não está hasheada, fazer hash
+        if hasattr(self, 'senha') and self.senha and not self.senha.startswith('$'):
+            self.senha = make_password(self.senha)
+        super().save(*args, **kwargs)
+    
+    def is_authenticated(self):
+        """Verifica se o usuário está autenticado"""
+        return True
+    
+    def is_anonymous(self):
+        """Verifica se o usuário é anônimo"""
+        return False
+    
+    def get_username(self):
+        """Retorna o username para compatibilidade com Django Auth"""
+        if hasattr(self, 'email'):
+            return self.email
+        elif hasattr(self, 'username'):
+            return self.username
+        return str(self.id)
 
 class SoftDeleteManager(models.Manager):
     def get_queryset(self):
@@ -48,9 +100,9 @@ class Admin(models.Model):
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
-    senha = models.CharField(max_length=128)
+    senha = models.CharField(max_length=128, validators=[validate_password_strength], help_text="Senha deve ter pelo menos 6 caracteres, conter letras e números")
 
-class Usuario(models.Model):
+class Usuario(PasswordHashMixin, models.Model):
     username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(unique=True)
     telefone = models.CharField(max_length=15, blank=True, null=True)
@@ -59,7 +111,7 @@ class Usuario(models.Model):
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
-    senha = models.CharField(max_length=128)
+    senha = models.CharField(max_length=128, validators=[validate_password_strength], help_text="Senha deve ter pelo menos 6 caracteres, conter letras e números")
 
 
 class Membro(BaseModel):
@@ -86,7 +138,7 @@ class Membro(BaseModel):
     dados_completos = models.TextField(blank=True, null=True)  # Campo legado
     foto = models.ImageField(upload_to='membros_fotos/', blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=ATIVO)
-    senha = models.CharField(max_length=128, blank=True, null=True, help_text="Senha para acesso ao sistema")
+    senha = models.CharField(max_length=128, blank=True, null=True, validators=[validate_password_strength], help_text="Senha para acesso ao sistema. Deve ter pelo menos 6 caracteres, conter letras e números")
     
     # Dados da igreja
     data_batismo = models.DateField(blank=True, null=True)
