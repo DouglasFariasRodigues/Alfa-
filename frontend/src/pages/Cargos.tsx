@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { useCargos, useDeleteCargo, type Cargo, type CargoFilters } from '@/hooks/useCargos'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function Cargos() {
@@ -38,18 +38,11 @@ export default function Cargos() {
 
     try {
       await deleteCargoMutation.mutateAsync(selectedCargo.id)
-      toast({
-        title: "Sucesso",
-        description: "Cargo excluído com sucesso!",
-      })
+      toast.success("Cargo excluído com sucesso!")
       setShowDeleteDialog(false)
       setSelectedCargo(null)
     } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao excluir cargo. Tente novamente.",
-        variant: "destructive",
-      })
+      toast.error("Erro ao excluir cargo. Tente novamente.")
     }
   }
 

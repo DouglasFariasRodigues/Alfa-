@@ -32,6 +32,9 @@ import NotFound from "./pages/NotFound";
 import MembrosVisualizacao from "./pages/MembrosVisualizacao";
 import EventosVisualizacao from "./pages/EventosVisualizacao";
 import FinancasVisualizacao from "./pages/FinancasVisualizacao";
+// Páginas específicas para membros
+import EventosMembro from "./pages/EventosMembro";
+import DetalhesEventoMembro from "./pages/DetalhesEventoMembro";
 
 const queryClient = new QueryClient();
 
@@ -177,6 +180,18 @@ const App = () => (
           <Route path="/membro/financas" element={
             <ProtectedRoute>
               <AppLayout><FinancasVisualizacao /></AppLayout>
+            </ProtectedRoute>
+          } />
+          
+          {/* Rotas específicas para membros com interface focada */}
+          <Route path="/eventos-membro" element={
+            <ProtectedRoute>
+              <AppLayout><EventosMembro /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/eventos/:id/membro" element={
+            <ProtectedRoute>
+              <AppLayout><DetalhesEventoMembro /></AppLayout>
             </ProtectedRoute>
           } />
           

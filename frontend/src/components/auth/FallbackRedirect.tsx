@@ -9,6 +9,9 @@ export const FallbackRedirect = () => {
         
         if (user.is_admin) {
           window.location.href = '/dashboard';
+        } else if (user.cargo?.pode_gerenciar_eventos) {
+          // Membro com permissão de eventos vai para dashboard administrativo
+          window.location.href = '/dashboard';
         } else {
           window.location.href = '/member-dashboard';
         }

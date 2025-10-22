@@ -28,7 +28,7 @@ const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home, permission: null }, // Sempre visível para admins
   { title: "Minha Área", url: "/member-dashboard", icon: Home, permission: null }, // Para membros
   { title: "Membros", url: "/membros", icon: Users, permission: "membros" },
-  { title: "Eventos", url: "/eventos", icon: Calendar, permission: "eventos" },
+  { title: "Eventos", url: "/eventos", icon: Calendar, permission: "eventos" }, // Único item de eventos
   { title: "Finanças", url: "/financas", icon: DollarSign, permission: "financas" },
 ];
 
@@ -43,7 +43,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const currentPath = location.pathname;
-  const { canAccess, isAdmin, isMember, user } = usePermissions();
+  const { canAccess, isAdmin, isMember, hasPermission, user } = usePermissions();
 
 
   const isActive = (path: string) => {
@@ -57,6 +57,15 @@ export function AppSidebar() {
       ? `${baseClass} bg-primary text-primary-foreground shadow-sm`
       : `${baseClass} hover:bg-accent hover:text-accent-foreground`;
   };
+
+  // Função para obter a URL correta de eventos baseada nas permissões
+  const getEventosUrl = () => {
+    if (isAdmin() || hasPermission('eventos')) {
+      return '/eventos'; // Interface administrativa
+    }
+    return '/eventos-membro'; // Interface de membro
+  };
+
 
   // Filtrar itens baseado em permissões
   const filteredMainItems = mainItems.filter(item => {
@@ -103,8 +112,8 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink 
-                      to={item.url} 
-                      className={getNavClass(item.url)}
+                      to={item.url === '/eventos' ? getEventosUrl() : item.url} 
+                      className={getNavClass(item.url === '/eventos' ? getEventosUrl() : item.url)}
                     >
                       <item.icon className="h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}

@@ -223,7 +223,7 @@ export default function MemberDashboard() {
             <Button 
               variant="outline" 
               className="h-20 flex-col gap-2"
-              onClick={() => window.location.href = '/eventos'}
+              onClick={() => window.location.href = '/eventos-membro'}
             >
               <Calendar className="h-6 w-6" />
               Ver Eventos

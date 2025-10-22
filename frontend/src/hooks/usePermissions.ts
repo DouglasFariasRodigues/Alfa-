@@ -76,7 +76,7 @@ export const usePermissions = () => {
       case 'membros':
         return user.cargo?.pode_gerenciar_membros || false;
       case 'eventos':
-        return true; // Todos os membros podem visualizar eventos
+        return true; // Todos os membros podem acessar eventos (mas com interfaces diferentes)
       case 'financas':
         return true; // Todos os membros podem visualizar finanças
       case 'cargos':
