@@ -84,7 +84,7 @@ class AuthViewSet(viewsets.ViewSet):
                 'cargo': AdminSerializer(admin).data.get('cargo'),
                 'is_admin': True,
                 'user_type': 'admin',
-                'date_joined': admin.date_joined,
+                'created_at': admin.created_at,
                 'last_login': admin.last_login
             })
         except Admin.DoesNotExist:

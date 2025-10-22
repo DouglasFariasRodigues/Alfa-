@@ -7,9 +7,9 @@ from .models import (Admin, Usuario, Membro, Grupo, Doacao, Igreja, Evento,
 
 @admin.register(Admin)
 class AdminAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'email', 'get_cargo_nome', 'is_active', 'is_staff', 'date_joined')
+    list_display = ('nome', 'email', 'get_cargo_nome', 'is_active', 'is_admin', 'created_at')
     search_fields = ('nome', 'email', 'cargo__nome')
-    list_filter = ('is_active', 'is_staff', 'cargo')
+    list_filter = ('is_active', 'is_admin', 'cargo')
 
     def get_cargo_nome(self, obj):
         return obj.cargo.nome if obj.cargo else 'Sem cargo'
@@ -18,7 +18,7 @@ class AdminAdmin(admin.ModelAdmin):
 
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'get_cargo_nome', 'is_active', 'is_staff', 'date_joined')
+    list_display = ('username', 'email', 'get_cargo_nome', 'is_active', 'is_staff', 'created_at')
     search_fields = ('username', 'email', 'cargo__nome')
     list_filter = ('is_active', 'is_staff', 'cargo')
 
@@ -86,9 +86,9 @@ class FotoPostagemAdmin(admin.ModelAdmin):
 
 @admin.register(Cargo)
 class CargoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'criado_por', 'data_criacao', 'pode_registrar_dizimos', 'pode_registrar_ofertas', 'pode_gerenciar_membros', 'pode_gerenciar_eventos')
+    list_display = ('nome', 'created_at', 'pode_registrar_dizimos', 'pode_registrar_ofertas', 'pode_gerenciar_membros', 'pode_gerenciar_eventos')
     search_fields = ('nome', 'descricao')
-    list_filter = ('data_criacao', 'pode_registrar_dizimos', 'pode_registrar_ofertas', 'pode_gerenciar_membros', 'pode_gerenciar_eventos')
+    list_filter = ('created_at', 'pode_registrar_dizimos', 'pode_registrar_ofertas', 'pode_gerenciar_membros', 'pode_gerenciar_eventos')
     list_editable = ('pode_registrar_dizimos', 'pode_registrar_ofertas', 'pode_gerenciar_membros', 'pode_gerenciar_eventos')
 
 @admin.register(ONG)

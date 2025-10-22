@@ -33,7 +33,7 @@ class PasswordHashMixin:
     
     def save(self, *args, **kwargs):
         # Se a senha foi alterada e não está hasheada, fazer hash
-        if hasattr(self, 'senha') and self.senha and not self.senha.startswith('$'):
+        if hasattr(self, 'senha') and self.senha and not self.senha.startswith('pbkdf2_'):
             self.senha = make_password(self.senha)
         super().save(*args, **kwargs)
     
@@ -63,6 +63,10 @@ class BaseModel(models.Model):
     deleted_at = models.DateTimeField(editable=False, blank=True, null=True)
     is_active = models.BooleanField(editable=False, default=True)
     
+    # Campos de auditoria - serão adicionados em migração futura
+    # created_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='%(class)s_created')
+    # updated_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='%(class)s_updated')
+    
     objects = SoftDeleteManager()
     
     class Meta:
@@ -75,11 +79,49 @@ class BaseModel(models.Model):
         
     def hard_delete(self, **kwargs):
         super(BaseModel, self).delete(**kwargs)
-class Cargo(models.Model):
+
+class UserBaseModel(BaseModel):
+    """Modelo base para todos os usuários do sistema"""
+    nome = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    telefone = models.CharField(max_length=15, blank=True, null=True)
+    senha = models.CharField(max_length=128, validators=[validate_password_strength], help_text="Senha deve ter pelo menos 6 caracteres, conter letras e números")
+    last_login = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        abstract = True
+    
+    def set_password(self, raw_password):
+        """Define uma senha com hash automático"""
+        from django.contrib.auth.hashers import make_password
+        self.senha = make_password(raw_password)
+    
+    def check_password(self, raw_password):
+        """Verifica se a senha está correta"""
+        from django.contrib.auth.hashers import check_password
+        return check_password(raw_password, self.senha)
+    
+    def save(self, *args, **kwargs):
+        # Se a senha foi alterada e não está hasheada, fazer hash
+        if hasattr(self, 'senha') and self.senha and not self.senha.startswith('pbkdf2_'):
+            from django.contrib.auth.hashers import make_password
+            self.senha = make_password(self.senha)
+        super().save(*args, **kwargs)
+    
+    def is_authenticated(self):
+        """Verifica se o usuário está autenticado"""
+        return True
+    
+    def is_anonymous(self):
+        """Verifica se o usuário é anônimo"""
+        return False
+    
+    def get_username(self):
+        """Retorna o username para compatibilidade com Django Auth"""
+        return self.email
+class Cargo(BaseModel):
     nome = models.CharField(max_length=100, unique=True)
     descricao = models.TextField(blank=True, null=True)
-    criado_por = models.ForeignKey('app_alfa.Admin', on_delete=models.SET_NULL, null=True, related_name='cargos_criados')
-    data_criacao = models.DateTimeField(auto_now_add=True)
 
     # Permissões
     pode_registrar_dizimos = models.BooleanField(default=False, help_text="Pode registrar dízimos")
@@ -91,30 +133,63 @@ class Cargo(models.Model):
     pode_gerenciar_documentos = models.BooleanField(default=False, help_text="Pode gerenciar documentos")
     pode_visualizar_relatorios = models.BooleanField(default=False, help_text="Pode visualizar relatórios")
 
-class Admin(models.Model):
+class Admin(BaseModel):
+    """Administrador/Pastor - Acesso completo ao sistema"""
     nome = models.CharField(max_length=100)
-    email = models.EmailField()
+    email = models.EmailField(unique=True)
     telefone = models.CharField(max_length=15, blank=True, null=True)
-    cargo = models.ForeignKey('app_alfa.Cargo', on_delete=models.SET_NULL, null=True, blank=True, related_name='admins')
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-    date_joined = models.DateTimeField(auto_now_add=True)
-    last_login = models.DateTimeField(auto_now=True)
     senha = models.CharField(max_length=128, validators=[validate_password_strength], help_text="Senha deve ter pelo menos 6 caracteres, conter letras e números")
+    last_login = models.DateTimeField(null=True, blank=True)
+    cargo = models.ForeignKey('app_alfa.Cargo', on_delete=models.SET_NULL, null=True, blank=True, related_name='admins')
+    is_admin = models.BooleanField(default=True, help_text="Indica se é administrador do sistema")
+    
+    def set_password(self, raw_password):
+        """Define uma senha com hash automático"""
+        from django.contrib.auth.hashers import make_password
+        self.senha = make_password(raw_password)
+    
+    def check_password(self, raw_password):
+        """Verifica se a senha está correta"""
+        from django.contrib.auth.hashers import check_password
+        return check_password(raw_password, self.senha)
+    
+    def save(self, *args, **kwargs):
+        # Se a senha foi alterada e não está hasheada, fazer hash
+        if hasattr(self, 'senha') and self.senha and not self.senha.startswith('pbkdf2_'):
+            from django.contrib.auth.hashers import make_password
+            self.senha = make_password(self.senha)
+        super().save(*args, **kwargs)
 
-class Usuario(PasswordHashMixin, models.Model):
+class Usuario(BaseModel):
+    """Colaborador/Staff - Usuário com permissões específicas baseadas no cargo"""
     username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(unique=True)
     telefone = models.CharField(max_length=15, blank=True, null=True)
-    cargo = models.ForeignKey('app_alfa.Cargo', on_delete=models.SET_NULL, null=True, blank=True, related_name='usuarios')
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-    date_joined = models.DateTimeField(auto_now_add=True)
-    last_login = models.DateTimeField(auto_now=True)
     senha = models.CharField(max_length=128, validators=[validate_password_strength], help_text="Senha deve ter pelo menos 6 caracteres, conter letras e números")
+    last_login = models.DateTimeField(null=True, blank=True)
+    cargo = models.ForeignKey('app_alfa.Cargo', on_delete=models.SET_NULL, null=True, blank=True, related_name='usuarios')
+    is_staff = models.BooleanField(default=True, help_text="Indica se é staff/colaborador")
+    
+    def set_password(self, raw_password):
+        """Define uma senha com hash automático"""
+        from django.contrib.auth.hashers import make_password
+        self.senha = make_password(raw_password)
+    
+    def check_password(self, raw_password):
+        """Verifica se a senha está correta"""
+        from django.contrib.auth.hashers import check_password
+        return check_password(raw_password, self.senha)
+    
+    def save(self, *args, **kwargs):
+        # Se a senha foi alterada e não está hasheada, fazer hash
+        if hasattr(self, 'senha') and self.senha and not self.senha.startswith('pbkdf2_'):
+            from django.contrib.auth.hashers import make_password
+            self.senha = make_password(self.senha)
+        super().save(*args, **kwargs)
 
 
 class Membro(BaseModel):
+    """Membro comum da igreja - Acesso limitado baseado em permissões"""
     ATIVO = 'ativo'
     INATIVO = 'inativo'
     FALECIDO = 'falecido'
@@ -134,11 +209,29 @@ class Membro(BaseModel):
     telefone = models.CharField(max_length=15, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     endereco = models.TextField(blank=True, null=True)
+    senha = models.CharField(max_length=128, blank=True, null=True, validators=[validate_password_strength], help_text="Senha para acesso ao sistema. Deve ter pelo menos 6 caracteres, conter letras e números")
+    last_login = models.DateTimeField(null=True, blank=True)
     
     dados_completos = models.TextField(blank=True, null=True)  # Campo legado
     foto = models.ImageField(upload_to='membros_fotos/', blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=ATIVO)
-    senha = models.CharField(max_length=128, blank=True, null=True, validators=[validate_password_strength], help_text="Senha para acesso ao sistema. Deve ter pelo menos 6 caracteres, conter letras e números")
+    
+    def set_password(self, raw_password):
+        """Define uma senha com hash automático"""
+        from django.contrib.auth.hashers import make_password
+        self.senha = make_password(raw_password)
+    
+    def check_password(self, raw_password):
+        """Verifica se a senha está correta"""
+        from django.contrib.auth.hashers import check_password
+        return check_password(raw_password, self.senha)
+    
+    def save(self, *args, **kwargs):
+        # Se a senha foi alterada e não está hasheada, fazer hash
+        if hasattr(self, 'senha') and self.senha and not self.senha.startswith('pbkdf2_'):
+            from django.contrib.auth.hashers import make_password
+            self.senha = make_password(self.senha)
+        super().save(*args, **kwargs)
     
     # Dados da igreja
     data_batismo = models.DateField(blank=True, null=True)
@@ -166,7 +259,7 @@ class Grupo(models.Model):
     nome = models.CharField(max_length=100)
     descricao = models.TextField(blank=True, null=True)
 
-class Doacao(models.Model):
+class Doacao(BaseModel):
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     data = models.DateField(auto_now_add=True)
     tipo = models.CharField(max_length=50)
@@ -178,7 +271,7 @@ class Igreja(models.Model):
     endereco = models.CharField(max_length=255)
     telefone = models.CharField(max_length=15, blank=True, null=True)
 
-class Evento(models.Model):
+class Evento(BaseModel):
     titulo = models.CharField(max_length=200)
     descricao = models.TextField()
     data = models.DateTimeField()
@@ -192,7 +285,7 @@ class FotoEvento(models.Model):
     descricao = models.CharField(max_length=255, blank=True, null=True)
     data_upload = models.DateTimeField(auto_now_add=True)
 
-class Postagem(models.Model):
+class Postagem(BaseModel):
     titulo = models.CharField(max_length=200)
     conteudo = models.TextField()
     autor = models.ForeignKey('app_alfa.Usuario', on_delete=models.CASCADE, related_name='postagens')

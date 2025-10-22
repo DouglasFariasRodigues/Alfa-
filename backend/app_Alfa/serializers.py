@@ -16,7 +16,7 @@ class AdminSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Admin
-        fields = ['id', 'nome', 'email', 'telefone', 'cargo', 'cargo_nome', 'is_active', 'is_staff', 'date_joined', 'last_login']
+        fields = ['id', 'nome', 'email', 'telefone', 'cargo', 'cargo_nome', 'is_active', 'is_admin', 'created_at', 'last_login']
         extra_kwargs = {'senha': {'write_only': True}}
 
 class UsuarioSerializer(serializers.ModelSerializer):
@@ -24,7 +24,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Usuario
-        fields = ['id', 'username', 'email', 'telefone', 'cargo', 'cargo_nome', 'is_active', 'is_staff', 'date_joined', 'last_login']
+        fields = ['id', 'username', 'email', 'telefone', 'cargo', 'cargo_nome', 'is_active', 'is_staff', 'created_at', 'last_login']
         extra_kwargs = {'senha': {'write_only': True}}
 
 class MembroSerializer(serializers.ModelSerializer):
