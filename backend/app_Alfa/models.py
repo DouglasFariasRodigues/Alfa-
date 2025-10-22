@@ -2,7 +2,12 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.hashers import make_password, check_password
 from django.core.exceptions import ValidationError
+from django.core.validators import EmailValidator
 import re
+from .validators import (
+    validate_cpf, validate_phone, validate_email_domain, 
+    validate_rg, validate_cep, validate_age
+)
 
 def validate_password_strength(value):
     """Validador de força de senha"""
@@ -135,12 +140,12 @@ class Cargo(BaseModel):
 
 class Admin(BaseModel):
     """Administrador/Pastor - Acesso completo ao sistema"""
-    nome = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    telefone = models.CharField(max_length=15, blank=True, null=True)
+    nome = models.CharField(max_length=100, help_text="Nome completo do administrador")
+    email = models.EmailField(unique=True, validators=[EmailValidator(), validate_email_domain], help_text="Email válido")
+    telefone = models.CharField(max_length=15, blank=True, null=True, validators=[validate_phone], help_text="Telefone com DDD (10 ou 11 dígitos)")
     senha = models.CharField(max_length=128, validators=[validate_password_strength], help_text="Senha deve ter pelo menos 6 caracteres, conter letras e números")
     last_login = models.DateTimeField(null=True, blank=True)
-    cargo = models.ForeignKey('app_alfa.Cargo', on_delete=models.SET_NULL, null=True, blank=True, related_name='admins')
+    cargo = models.ForeignKey('app_alfa.Cargo', on_delete=models.PROTECT, null=True, blank=True, related_name='admins')
     is_admin = models.BooleanField(default=True, help_text="Indica se é administrador do sistema")
     
     def set_password(self, raw_password):
@@ -162,12 +167,12 @@ class Admin(BaseModel):
 
 class Usuario(BaseModel):
     """Colaborador/Staff - Usuário com permissões específicas baseadas no cargo"""
-    username = models.CharField(max_length=150, unique=True)
-    email = models.EmailField(unique=True)
-    telefone = models.CharField(max_length=15, blank=True, null=True)
+    username = models.CharField(max_length=150, unique=True, help_text="Nome de usuário único")
+    email = models.EmailField(unique=True, validators=[EmailValidator(), validate_email_domain], help_text="Email válido")
+    telefone = models.CharField(max_length=15, blank=True, null=True, validators=[validate_phone], help_text="Telefone com DDD (10 ou 11 dígitos)")
     senha = models.CharField(max_length=128, validators=[validate_password_strength], help_text="Senha deve ter pelo menos 6 caracteres, conter letras e números")
     last_login = models.DateTimeField(null=True, blank=True)
-    cargo = models.ForeignKey('app_alfa.Cargo', on_delete=models.SET_NULL, null=True, blank=True, related_name='usuarios')
+    cargo = models.ForeignKey('app_alfa.Cargo', on_delete=models.PROTECT, null=True, blank=True, related_name='usuarios')
     is_staff = models.BooleanField(default=True, help_text="Indica se é staff/colaborador")
     
     def set_password(self, raw_password):
@@ -202,13 +207,13 @@ class Membro(BaseModel):
     ]
     
     # Dados pessoais
-    nome = models.CharField(max_length=200, blank=True, null=True)
-    cpf = models.CharField(max_length=14, unique=True, blank=True, null=True)
-    rg = models.CharField(max_length=20, blank=True, null=True)
-    data_nascimento = models.DateField(blank=True, null=True)
-    telefone = models.CharField(max_length=15, blank=True, null=True)
-    email = models.EmailField(blank=True, null=True)
-    endereco = models.TextField(blank=True, null=True)
+    nome = models.CharField(max_length=200, blank=True, null=True, help_text="Nome completo do membro")
+    cpf = models.CharField(max_length=14, unique=True, blank=True, null=True, validators=[validate_cpf], help_text="CPF válido (apenas números)")
+    rg = models.CharField(max_length=20, blank=True, null=True, validators=[validate_rg], help_text="RG válido")
+    data_nascimento = models.DateField(blank=True, null=True, validators=[validate_age], help_text="Data de nascimento (idade mínima 18 anos)")
+    telefone = models.CharField(max_length=15, blank=True, null=True, validators=[validate_phone], help_text="Telefone com DDD (10 ou 11 dígitos)")
+    email = models.EmailField(blank=True, null=True, validators=[EmailValidator(), validate_email_domain], help_text="Email válido")
+    endereco = models.TextField(blank=True, null=True, help_text="Endereço completo")
     senha = models.CharField(max_length=128, blank=True, null=True, validators=[validate_password_strength], help_text="Senha para acesso ao sistema. Deve ter pelo menos 6 caracteres, conter letras e números")
     last_login = models.DateTimeField(null=True, blank=True)
     
@@ -236,8 +241,8 @@ class Membro(BaseModel):
     # Dados da igreja
     data_batismo = models.DateField(blank=True, null=True)
     igreja_origem = models.CharField(max_length=200, blank=True, null=True)
-    cargo = models.ForeignKey('app_alfa.Cargo', on_delete=models.SET_NULL, null=True, blank=True, related_name='membros', help_text="Cargo do membro na igreja")
-    cadastrado_por = models.ForeignKey('app_alfa.Admin', on_delete=models.SET_NULL, null=True, blank=True, related_name='membros_cadastrados')
+    cargo = models.ForeignKey('app_alfa.Cargo', on_delete=models.PROTECT, null=True, blank=True, related_name='membros', help_text="Cargo do membro na igreja")
+    cadastrado_por = models.ForeignKey('app_alfa.Admin', on_delete=models.PROTECT, null=True, blank=True, related_name='membros_cadastrados')
 
 class DocumentoMembro(models.Model):
     CARTAO_MEMBRO = 'cartao_membro'
