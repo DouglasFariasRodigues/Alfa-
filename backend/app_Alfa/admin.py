@@ -223,7 +223,7 @@ class EventoAdmin(admin.ModelAdmin):
     get_data_formatada.admin_order_field = 'data'
     
     def get_participantes_count(self, obj):
-        count = obj.eventopresenca_set.count()
+        count = obj.presencas.count()
         if count > 0:
             return format_html(
                 '<span style="background: #007cba; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">{} participantes</span>',
@@ -388,15 +388,16 @@ class TransacaoAdmin(admin.ModelAdmin):
     get_tipo_badge.short_description = 'Tipo'
     
     def get_valor_formatado(self, obj):
+        valor_formatado = f"{float(obj.valor):.2f}"
         if obj.tipo == 'entrada':
             return format_html(
-                '<span style="color: #28a745; font-weight: bold;">+ R$ {:.2f}</span>',
-                obj.valor
+                '<span style="color: #28a745; font-weight: bold;">+ R$ {}</span>',
+                valor_formatado
             )
         else:
             return format_html(
-                '<span style="color: #dc3545; font-weight: bold;">- R$ {:.2f}</span>',
-                obj.valor
+                '<span style="color: #dc3545; font-weight: bold;">- R$ {}</span>',
+                valor_formatado
             )
     get_valor_formatado.short_description = 'Valor'
     get_valor_formatado.admin_order_field = 'valor'

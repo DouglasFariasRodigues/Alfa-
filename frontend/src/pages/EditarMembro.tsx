@@ -120,7 +120,7 @@ export default function EditarMembro() {
       
       await updateMembroMutation.mutateAsync({
         id: Number(id),
-        ...membroData
+        membro: membroData
       });
       
       toast({

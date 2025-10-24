@@ -220,26 +220,31 @@ class EventoViewSet(viewsets.ModelViewSet):
         return queryset.order_by('-data')
     
     def perform_create(self, serializer):
-        # Usar o usuário autenticado como organizador
+        # Usar o admin autenticado como organizador
         try:
-            # Tentar encontrar o usuário correspondente ao admin autenticado
+            # Tentar encontrar o admin correspondente ao usuário autenticado
             admin = Admin.objects.get(email=self.request.user.username)
+            # Criar um usuário organizador simples
             organizador, created = Usuario.objects.get_or_create(
                 username=admin.email,
                 defaults={
                     'email': admin.email,
-                    'is_active': True,
-                    'is_staff': True
+                    'telefone': '(11) 99999-9999',
+                    'senha': admin.senha,
+                    'is_staff': True,
+                    'is_active': True
                 }
             )
         except Admin.DoesNotExist:
             # Usuário padrão se não encontrar admin
             organizador, created = Usuario.objects.get_or_create(
-                username='admin',
+                username='admin@igreja.com',
                 defaults={
                     'email': 'admin@igreja.com',
-                    'is_active': True,
-                    'is_staff': True
+                    'telefone': '(11) 99999-9999',
+                    'senha': 'pbkdf2_sha256$600000$dummy$dummy',
+                    'is_staff': True,
+                    'is_active': True
                 }
             )
         serializer.save(organizador=organizador)

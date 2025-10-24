@@ -104,7 +104,7 @@ export default function EditarEvento() {
       
       await updateEventoMutation.mutateAsync({
         id: Number(id),
-        ...eventoData
+        evento: eventoData
       });
       
       toast({
