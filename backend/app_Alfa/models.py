@@ -10,19 +10,14 @@ from .validators import (
 )
 
 def validate_password_strength(value):
-    """Validador de força de senha"""
-    if len(value) < 6:
-        raise ValidationError('A senha deve ter pelo menos 6 caracteres.')
+    """Validador de força de senha - VERSÃO RELAXADA"""
+    # Apenas verificar tamanho mínimo
+    if len(value) < 4:
+        raise ValidationError('A senha deve ter pelo menos 4 caracteres.')
     
-    if not re.search(r'[A-Za-z]', value):
-        raise ValidationError('A senha deve conter pelo menos uma letra.')
-    
-    if not re.search(r'\d', value):
-        raise ValidationError('A senha deve conter pelo menos um número.')
-    
-    # Verificar senhas comuns
-    common_passwords = ['123456', 'password', 'admin', 'senha', '123123']
-    if value.lower() in common_passwords:
+    # Verificar apenas senhas muito comuns e perigosas
+    dangerous_passwords = ['123', 'abc', '1234', 'admin', 'root', 'password']
+    if value.lower() in dangerous_passwords:
         raise ValidationError('Esta senha é muito comum. Escolha uma senha mais segura.')
 
 class PasswordHashMixin:
@@ -207,12 +202,12 @@ class Membro(BaseModel):
     ]
     
     # Dados pessoais
-    nome = models.CharField(max_length=200, blank=True, null=True, help_text="Nome completo do membro")
+    nome = models.CharField(max_length=200, help_text="Nome completo do membro")
     cpf = models.CharField(max_length=14, unique=True, blank=True, null=True, validators=[validate_cpf], help_text="CPF válido (apenas números)")
     rg = models.CharField(max_length=20, blank=True, null=True, validators=[validate_rg], help_text="RG válido")
     data_nascimento = models.DateField(blank=True, null=True, validators=[validate_age], help_text="Data de nascimento (idade mínima 18 anos)")
     telefone = models.CharField(max_length=15, blank=True, null=True, validators=[validate_phone], help_text="Telefone com DDD (10 ou 11 dígitos)")
-    email = models.EmailField(blank=True, null=True, validators=[EmailValidator(), validate_email_domain], help_text="Email válido")
+    email = models.EmailField(validators=[EmailValidator(), validate_email_domain], help_text="Email válido")
     endereco = models.TextField(blank=True, null=True, help_text="Endereço completo")
     senha = models.CharField(max_length=128, blank=True, null=True, validators=[validate_password_strength], help_text="Senha para acesso ao sistema. Deve ter pelo menos 6 caracteres, conter letras e números")
     last_login = models.DateTimeField(null=True, blank=True)

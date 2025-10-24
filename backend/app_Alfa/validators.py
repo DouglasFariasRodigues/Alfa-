@@ -68,15 +68,16 @@ def validate_email_domain(value):
     if not value:
         return
     
-    # Lista de domínios permitidos (opcional)
+    # Lista de domínios permitidos (mais flexível)
     allowed_domains = [
         'gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com',
-        'igreja.com', 'igreja.org', 'igreja.net'
+        'igreja.com', 'igreja.org', 'igreja.net', 'email.com',
+        'teste.com', 'exemplo.com', 'alfa.com'
     ]
     
     domain = value.split('@')[1].lower()
     if domain not in allowed_domains:
-        raise ValidationError(_('Domínio de email não permitido.'))
+        raise ValidationError(_(f'Domínio de email não permitido. Domínios aceitos: {", ".join(allowed_domains)}'))
 
 
 def validate_rg(value):

@@ -41,6 +41,16 @@ class MembroCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Membro
         exclude = ['created_at', 'updated_at', 'deleted_at', 'is_active', 'cadastrado_por']
+    
+    def to_internal_value(self, data):
+        # Converter strings vazias para None
+        cleaned_data = {}
+        for key, value in data.items():
+            if value == '' or value is None:
+                cleaned_data[key] = None
+            else:
+                cleaned_data[key] = value
+        return super().to_internal_value(cleaned_data)
 
 class IgrejaSerializer(serializers.ModelSerializer):
     class Meta:

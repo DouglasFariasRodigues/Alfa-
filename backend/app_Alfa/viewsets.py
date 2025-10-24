@@ -124,6 +124,14 @@ class AuthViewSet(viewsets.ViewSet):
         try:
             membro = Membro.objects.get(email=email)
             from django.contrib.auth.hashers import check_password
+            
+            # Verificar se membro tem senha
+            if not membro.senha:
+                return Response({
+                    'success': False,
+                    'message': 'Membro não possui senha cadastrada'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
             if check_password(senha, membro.senha):  # Usar hash de senha
                 # Atualizar last_login
                 membro.last_login = timezone.now()
