@@ -29,6 +29,11 @@ from app_alfa.viewsets import (
     TransferenciaViewSet, FotoEventoViewSet, FotoPostagemViewSet,
     DocumentoMembroViewSet, EventoPresencaViewSet, EventoComentarioViewSet
 )
+from app_alfa.relatorio_views import (
+    RelatorioMembrosView, RelatorioFinanceiroView, RelatorioEventosView,
+    DashboardView, EstatisticasMembrosView, EstatisticasFinanceirasView,
+    EstatisticasEventosView, ExportarMembrosView, ExportarTransacoesView
+)
 
 # Configurar router para viewsets
 router = DefaultRouter()
@@ -64,4 +69,15 @@ urlpatterns = [
     # Legacy endpoints (manter para compatibilidade)
     path('api/gerar-pdf-transferencia/<int:transferencia_id>/', views.gerar_pdf_transferencia, name='gerar_pdf_transferencia'),
     path('api/gerar-cartao-membro/<int:membro_id>/', views.gerar_cartao_membro, name='gerar_cartao_membro'),
+    
+    # Relatórios e Analytics
+    path('api/relatorios/membros/pdf/', RelatorioMembrosView.as_view(), name='relatorio_membros_pdf'),
+    path('api/relatorios/financeiro/pdf/', RelatorioFinanceiroView.as_view(), name='relatorio_financeiro_pdf'),
+    path('api/relatorios/eventos/pdf/', RelatorioEventosView.as_view(), name='relatorio_eventos_pdf'),
+    path('api/dashboard/', DashboardView.as_view(), name='dashboard'),
+    path('api/estatisticas/membros/', EstatisticasMembrosView.as_view(), name='estatisticas_membros'),
+    path('api/estatisticas/financeiro/', EstatisticasFinanceirasView.as_view(), name='estatisticas_financeiro'),
+    path('api/estatisticas/eventos/', EstatisticasEventosView.as_view(), name='estatisticas_eventos'),
+    path('api/exportar/membros/csv/', ExportarMembrosView.as_view(), name='exportar_membros_csv'),
+    path('api/exportar/transacoes/csv/', ExportarTransacoesView.as_view(), name='exportar_transacoes_csv'),
 ]

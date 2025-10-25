@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, Plus, Filter, MoreHorizontal, Phone, Mail, MapPin, Loader2, Eye, Edit, Trash2 } from "lucide-react";
+import { Search, Plus, Filter, MoreHorizontal, Phone, Mail, MapPin, Loader2, Eye, Edit, Trash2, Download } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import {
   Table,
@@ -50,6 +50,47 @@ export default function Membros() {
     }
   };
 
+  const handleGerarRelatorio = async () => {
+    try {
+      // Gerar relatório PDF de membros
+      const dataInicio = new Date();
+      dataInicio.setMonth(dataInicio.getMonth() - 1);
+      const dataFim = new Date();
+      
+      const params = new URLSearchParams({
+        data_inicio: dataInicio.toISOString().split('T')[0],
+        data_fim: dataFim.toISOString().split('T')[0]
+      });
+      
+      // Fazer requisição para o backend
+      const response = await fetch(`http://127.0.0.1:8000/api/relatorios/membros/pdf/?${params}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      });
+      
+      if (response.ok) {
+        // Criar blob e download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `relatorio_membros_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast.success('Relatório gerado com sucesso!');
+      } else {
+        toast.error('Erro ao gerar relatório');
+      }
+    } catch (error) {
+      console.error('Erro ao gerar relatório:', error);
+      toast.error('Erro ao gerar relatório');
+    }
+  };
+
   // Calcular estatísticas
   const totalMembros = membros.length;
   const membrosAtivos = membros.filter(m => m.status === 'ativo').length;
@@ -84,15 +125,25 @@ export default function Membros() {
             Gerencie os membros da sua comunidade
           </p>
         </div>
-        {canManageMembers && (
+        <div className="flex gap-2">
           <Button 
-            onClick={() => window.location.href = '/membros/novo'}
-            className="gradient-primary text-white shadow-elegant hover:opacity-90"
+            onClick={handleGerarRelatorio}
+            variant="outline"
+            className="border-blue-200 text-blue-600 hover:bg-blue-50"
           >
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Membro
+            <Download className="mr-2 h-4 w-4" />
+            Relatório
           </Button>
-        )}
+          {canManageMembers && (
+            <Button 
+              onClick={() => window.location.href = '/membros/novo'}
+              className="gradient-primary text-white shadow-elegant hover:opacity-90"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Membro
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Stats Cards */}

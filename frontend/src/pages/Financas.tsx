@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useTransacoes } from "@/hooks/useTransacoes";
+import { toast } from "sonner";
 
 export default function Financas() {
   // Buscar transações da API
@@ -21,6 +22,47 @@ export default function Financas() {
   
   // Verificar se o usuário pode gerenciar finanças
   const canManageFinances = hasPermission('financas') || canAccess('financas') || isAdmin();
+
+  const handleGerarRelatorio = async () => {
+    try {
+      // Gerar relatório PDF financeiro
+      const dataInicio = new Date();
+      dataInicio.setMonth(dataInicio.getMonth() - 1);
+      const dataFim = new Date();
+      
+      const params = new URLSearchParams({
+        data_inicio: dataInicio.toISOString().split('T')[0],
+        data_fim: dataFim.toISOString().split('T')[0]
+      });
+      
+      // Fazer requisição para o backend
+      const response = await fetch(`http://127.0.0.1:8000/api/relatorios/financeiro/pdf/?${params}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      });
+      
+      if (response.ok) {
+        // Criar blob e download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `relatorio_financeiro_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast.success('Relatório gerado com sucesso!');
+      } else {
+        toast.error('Erro ao gerar relatório');
+      }
+    } catch (error) {
+      console.error('Erro ao gerar relatório:', error);
+      toast.error('Erro ao gerar relatório');
+    }
+  };
 
   if (error) {
     return (
@@ -73,7 +115,11 @@ export default function Financas() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button 
+            onClick={handleGerarRelatorio}
+            variant="outline"
+            className="border-blue-200 text-blue-600 hover:bg-blue-50"
+          >
             <Download className="mr-2 h-4 w-4" />
             Relatório
           </Button>

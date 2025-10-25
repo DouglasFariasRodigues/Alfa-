@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, MapPin, Users, Plus, Filter, Loader2, Eye, CheckCircle, Trash2 } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Plus, Filter, Loader2, Eye, CheckCircle, Trash2, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useEventos, useDeleteEvento } from "@/hooks/useEventos";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -40,6 +40,47 @@ export default function Eventos() {
       } catch (error) {
         toast.error('Erro ao excluir evento');
       }
+    }
+  };
+
+  const handleGerarRelatorio = async () => {
+    try {
+      // Gerar relatório PDF de eventos
+      const dataInicio = new Date();
+      dataInicio.setMonth(dataInicio.getMonth() - 1);
+      const dataFim = new Date();
+      
+      const params = new URLSearchParams({
+        data_inicio: dataInicio.toISOString().split('T')[0],
+        data_fim: dataFim.toISOString().split('T')[0]
+      });
+      
+      // Fazer requisição para o backend
+      const response = await fetch(`http://127.0.0.1:8000/api/relatorios/eventos/pdf/?${params}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      });
+      
+      if (response.ok) {
+        // Criar blob e download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `relatorio_eventos_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast.success('Relatório gerado com sucesso!');
+      } else {
+        toast.error('Erro ao gerar relatório');
+      }
+    } catch (error) {
+      console.error('Erro ao gerar relatório:', error);
+      toast.error('Erro ao gerar relatório');
     }
   };
 
@@ -130,15 +171,25 @@ export default function Eventos() {
             Gerencie os eventos e atividades da sua igreja
           </p>
         </div>
-        {canManageEvents && (
+        <div className="flex gap-2">
           <Button 
-            onClick={() => window.location.href = '/eventos/novo'}
-            className="gradient-primary text-white shadow-elegant hover:opacity-90"
+            onClick={handleGerarRelatorio}
+            variant="outline"
+            className="border-blue-200 text-blue-600 hover:bg-blue-50"
           >
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Evento
+            <Download className="mr-2 h-4 w-4" />
+            Relatório
           </Button>
-        )}
+          {canManageEvents && (
+            <Button 
+              onClick={() => window.location.href = '/eventos/novo'}
+              className="gradient-primary text-white shadow-elegant hover:opacity-90"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Evento
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Stats Cards */}

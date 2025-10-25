@@ -1,0 +1,98 @@
+{% extends "relatorios/base_pdf.html" %}
+
+{% block content %}
+<div class="info-box">
+    <h3>📅 Estatísticas de Eventos</h3>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="number">{{ total_eventos }}</div>
+            <div class="label">Total de Eventos</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">{{ eventos_realizados }}</div>
+            <div class="label">Eventos Realizados</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">{{ eventos_agendados }}</div>
+            <div class="label">Eventos Agendados</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">{{ eventos_cancelados }}</div>
+            <div class="label">Eventos Cancelados</div>
+        </div>
+    </div>
+</div>
+
+<div class="info-box">
+    <h3>📊 Participação Média</h3>
+    <div class="stat-card">
+        <div class="number">{{ participacao_media }}%</div>
+        <div class="label">Taxa de Participação</div>
+    </div>
+</div>
+
+{% if eventos_por_tipo %}
+<div class="info-box">
+    <h3>🎯 Eventos por Tipo</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tipo de Evento</th>
+                <th class="text-center">Quantidade</th>
+                <th class="text-center">Percentual</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in eventos_por_tipo %}
+            <tr>
+                <td>{{ item.tipo|title }}</td>
+                <td class="text-center">{{ item.total }}</td>
+                <td class="text-center">
+                    {% widthratio item.total total_eventos 100 %}%
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if top_eventos %}
+<div class="info-box">
+    <h3>🏆 Top 5 Eventos com Maior Participação</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Evento</th>
+                <th class="text-center">Data</th>
+                <th class="text-center">Participantes</th>
+                <th class="text-center">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for evento in top_eventos %}
+            <tr>
+                <td>{{ evento.nome }}</td>
+                <td class="text-center">{{ evento.data|date:"d/m/Y" }}</td>
+                <td class="text-center">{{ evento.total_participantes }}</td>
+                <td class="text-center">
+                    <span class="badge 
+                        {% if evento.status == 'realizado' %}badge-success
+                        {% elif evento.status == 'agendado' %}badge-warning
+                        {% else %}badge-danger{% endif %}">
+                        {{ evento.status|title }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div class="info-box">
+    <h3>📅 Período do Relatório</h3>
+    <p><strong>Data de Início:</strong> {{ data_inicio|date:"d/m/Y" }}</p>
+    <p><strong>Data de Fim:</strong> {{ data_fim|date:"d/m/Y" }}</p>
+</div>
+{% endblock %}

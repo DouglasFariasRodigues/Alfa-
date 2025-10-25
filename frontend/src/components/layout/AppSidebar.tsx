@@ -81,9 +81,14 @@ export function AppSidebar() {
     return !item.permission || canAccess(item.permission) || isAdmin();
   });
 
-  const filteredOtherItems = otherItems.filter(item => 
-    !item.permission || canAccess(item.permission) || isAdmin()
-  );
+  const filteredOtherItems = otherItems.filter(item => {
+    // Relatórios sempre visível para admins
+    if (item.url === '/relatorios') {
+      return isAdmin();
+    }
+    // Para outros itens, verificar permissões
+    return !item.permission || canAccess(item.permission) || isAdmin();
+  });
 
   return (
     <Sidebar className={collapsed ? "w-16" : "w-64"}>
