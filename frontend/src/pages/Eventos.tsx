@@ -265,58 +265,64 @@ export default function Eventos() {
               <span className="ml-2">Carregando eventos...</span>
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
               {eventos.length === 0 ? (
-                <div className="col-span-full text-center py-8">
-                  <p className="text-muted-foreground">Nenhum evento encontrado</p>
+                <div className="col-span-full text-center py-12">
+                  <div className="text-muted-foreground">
+                    <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium">Nenhum evento encontrado</p>
+                    <p className="text-sm">Não há eventos cadastrados no momento</p>
+                  </div>
                 </div>
               ) : (
                 eventos.map((evento) => (
-              <Card key={evento.id} className="shadow-card hover:shadow-elegant transition-smooth">
+              <Card key={evento.id} className="shadow-card hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 h-full">
                 <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <CardTitle className="text-lg">{evento.titulo}</CardTitle>
-                      <CardDescription>{evento.descricao}</CardDescription>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-2 flex-1 min-w-0">
+                      <CardTitle className="text-xl leading-tight">{evento.titulo}</CardTitle>
+                      {evento.descricao && (
+                        <CardDescription className="text-sm leading-relaxed">{evento.descricao}</CardDescription>
+                      )}
                     </div>
-                    <Badge className={getStatusColor(evento.status)}>
+                    <Badge className={getStatusColor(evento.status)} variant="secondary">
                       {evento.status}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>{new Date(evento.data).toLocaleDateString('pt-BR', {
+                <CardContent className="space-y-5 flex-1">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="flex items-center gap-3 text-sm">
+                      <Calendar className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                      <span className="font-medium">{new Date(evento.data).toLocaleDateString('pt-BR', {
                         weekday: 'long',
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
                       })}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span>{new Date(evento.data).toLocaleTimeString('pt-BR', {
+                    <div className="flex items-center gap-3 text-sm">
+                      <Clock className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                      <span className="font-medium">{new Date(evento.data).toLocaleTimeString('pt-BR', {
                         hour: '2-digit',
                         minute: '2-digit'
                       })}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span>{evento.local || 'Local não informado'}</span>
+                    <div className="flex items-center gap-3 text-sm">
+                      <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                      <span className="font-medium">{evento.local || 'Local não informado'}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span>Organizado por: {evento.organizador_nome}</span>
+                    <div className="flex items-center gap-3 text-sm">
+                      <Users className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                      <span className="font-medium">Organizado por: {evento.organizador_nome}</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <Badge className="gradient-primary text-white">
+                  <div className="flex items-center justify-between pt-4 border-t">
+                    <Badge variant="outline" className="text-sm">
                       Evento
                     </Badge>
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
                       {canManageEvents ? (
                         <>
                           <Button 
@@ -331,6 +337,7 @@ export default function Eventos() {
                             size="sm"
                             onClick={() => window.location.href = `/eventos/${evento.id}`}
                           >
+                            <Eye className="mr-2 h-4 w-4" />
                             Ver Detalhes
                           </Button>
                           <Button 
@@ -341,9 +348,9 @@ export default function Eventos() {
                             disabled={deleteEventoMutation.isPending}
                           >
                             {deleteEventoMutation.isPending ? (
-                              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
-                              <Trash2 className="mr-1 h-3 w-3" />
+                              <Trash2 className="mr-2 h-4 w-4" />
                             )}
                             Remover
                           </Button>
@@ -355,7 +362,7 @@ export default function Eventos() {
                             size="sm"
                             onClick={() => window.location.href = `/eventos/${evento.id}`}
                           >
-                            <Eye className="mr-1 h-3 w-3" />
+                            <Eye className="mr-2 h-4 w-4" />
                             Ver Detalhes
                           </Button>
                           {isPresenceConfirmed(evento.id) ? (
@@ -365,7 +372,7 @@ export default function Eventos() {
                               className="border-green-500 text-green-600 bg-green-50"
                               disabled
                             >
-                              <CheckCircle className="mr-1 h-3 w-3" />
+                              <CheckCircle className="mr-2 h-4 w-4" />
                               Presença Confirmada
                             </Button>
                           ) : (
@@ -377,9 +384,9 @@ export default function Eventos() {
                               disabled={confirmPresenceMutation.isPending}
                             >
                               {confirmPresenceMutation.isPending ? (
-                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               ) : (
-                                <CheckCircle className="mr-1 h-3 w-3" />
+                                <CheckCircle className="mr-2 h-4 w-4" />
                               )}
                               Confirmar Presença
                             </Button>
