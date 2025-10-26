@@ -83,7 +83,7 @@ export default function Cargos() {
     return (
       <div className="flex items-center justify-center h-64">
         <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
+          <CardContent>
             <div className="text-center">
               <p className="text-red-500 mb-4">Erro ao carregar cargos</p>
               <Button onClick={() => window.location.reload()}>
@@ -97,9 +97,9 @@ export default function Cargos() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Cargos</h1>
           <p className="text-muted-foreground">
@@ -115,7 +115,7 @@ export default function Cargos() {
       </div>
 
       {/* Estatísticas */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Cargos</CardTitle>
