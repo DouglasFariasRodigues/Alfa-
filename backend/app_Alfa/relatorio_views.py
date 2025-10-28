@@ -2,7 +2,7 @@
 Views para Relatórios e Analytics - Alfa+
 """
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -35,7 +35,11 @@ class RelatorioMembrosView(View):
             data_fim = datetime.strptime(data_fim, '%Y-%m-%d').date()
         
         relatorio = RelatorioMembros(data_inicio, data_fim)
-        return relatorio.gerar_pdf()
+        pdf_content = relatorio.gerar_pdf()
+        
+        response = HttpResponse(pdf_content, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="relatorio_membros.pdf"'
+        return response
 
 
 class RelatorioFinanceiroView(View):
@@ -53,7 +57,11 @@ class RelatorioFinanceiroView(View):
             data_fim = datetime.strptime(data_fim, '%Y-%m-%d').date()
         
         relatorio = RelatorioFinanceiro(data_inicio, data_fim)
-        return relatorio.gerar_pdf()
+        pdf_content = relatorio.gerar_pdf()
+        
+        response = HttpResponse(pdf_content, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="relatorio_financeiro.pdf"'
+        return response
 
 
 class RelatorioEventosView(View):
@@ -71,7 +79,11 @@ class RelatorioEventosView(View):
             data_fim = datetime.strptime(data_fim, '%Y-%m-%d').date()
         
         relatorio = RelatorioEventos(data_inicio, data_fim)
-        return relatorio.gerar_pdf()
+        pdf_content = relatorio.gerar_pdf()
+        
+        response = HttpResponse(pdf_content, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="relatorio_eventos.pdf"'
+        return response
 
 
 class DashboardView(View):

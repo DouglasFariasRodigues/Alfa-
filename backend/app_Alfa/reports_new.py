@@ -103,7 +103,7 @@ class RelatorioMembros(RelatorioBase):
         
         # 3. Gráfico de Status
         if metrics['status_distribution']:
-            story.append(Paragraph("📈 DISTRIBUIÇÃO POR STATUS", self.styles['CabecSecao']))
+            story.append(Paragraph("📈 DISTRIBUIÇÃO POR STATUS", self.styles.styles['CabecSecao']))
             chart = self.charts.create_pie_chart(
                 metrics['status_distribution'],
                 "Status dos Membros",
@@ -115,7 +115,7 @@ class RelatorioMembros(RelatorioBase):
         
         # 4. Gráfico de Faixa Etária
         if metrics['faixas_etarias'] and any(metrics['faixas_etarias'].values()):
-            story.append(Paragraph("👥 DISTRIBUIÇÃO POR FAIXA ETÁRIA", self.styles['CabecSecao']))
+            story.append(Paragraph("👥 DISTRIBUIÇÃO POR FAIXA ETÁRIA", self.styles.styles['CabecSecao']))
             chart = self.charts.create_bar_chart(
                 metrics['faixas_etarias'],
                 "Faixas Etárias",
@@ -141,7 +141,7 @@ class RelatorioMembros(RelatorioBase):
         
         # 6. Nova página para lista detalhada
         story.append(PageBreak())
-        story.append(Paragraph("📋 LISTA DETALHADA DE MEMBROS", self.styles['TituloPrincipal']))
+        story.append(Paragraph("📋 LISTA DETALHADA DE MEMBROS", self.styles.styles['TituloPrincipal']))
         story.append(Spacer(1, 0.2*inch))
         
         # 7. Tabela de membros
@@ -254,7 +254,7 @@ class RelatorioFinanceiro(RelatorioBase):
         
         # 3. Gráfico de Receitas vs Despesas
         if metrics['receitas'] > 0 or metrics['despesas'] > 0:
-            story.append(Paragraph("📊 RECEITAS VS DESPESAS", self.styles['CabecSecao']))
+            story.append(Paragraph("📊 RECEITAS VS DESPESAS", self.styles.styles['CabecSecao']))
             chart_data = {
                 'Receitas': metrics['receitas'],
                 'Despesas': metrics['despesas']
@@ -270,7 +270,7 @@ class RelatorioFinanceiro(RelatorioBase):
         
         # 4. Top Categorias de Gastos
         if metrics['categorias_gastos']:
-            story.append(Paragraph("💸 TOP CATEGORIAS DE GASTOS", self.styles['CabecSecao']))
+            story.append(Paragraph("💸 TOP CATEGORIAS DE GASTOS", self.styles.styles['CabecSecao']))
             gastos_data = {}
             for item in metrics['categorias_gastos']:
                 gastos_data[item['categoria']] = float(item['total'])
@@ -305,7 +305,7 @@ class RelatorioFinanceiro(RelatorioBase):
         
         # 6. Nova página para lista detalhada
         story.append(PageBreak())
-        story.append(Paragraph("📋 LISTA DETALHADA DE TRANSAÇÕES", self.styles['TituloPrincipal']))
+        story.append(Paragraph("📋 LISTA DETALHADA DE TRANSAÇÕES", self.styles.styles['TituloPrincipal']))
         story.append(Spacer(1, 0.2*inch))
         
         # 7. Tabela de transações
@@ -423,7 +423,7 @@ class RelatorioEventos(RelatorioBase):
         
         # 3. Gráfico de Status dos Eventos
         if metrics['total_eventos'] > 0:
-            story.append(Paragraph("📊 STATUS DOS EVENTOS", self.styles['CabecSecao']))
+            story.append(Paragraph("📊 STATUS DOS EVENTOS", self.styles.styles['CabecSecao']))
             status_data = {
                 'Realizados': metrics['eventos_realizados'],
                 'Agendados': metrics['eventos_agendados']
@@ -439,7 +439,7 @@ class RelatorioEventos(RelatorioBase):
         
         # 4. Gráfico de Eventos por Mês
         if metrics['eventos_por_mes'] and any(metrics['eventos_por_mes'].values()):
-            story.append(Paragraph("📈 EVENTOS POR MÊS", self.styles['CabecSecao']))
+            story.append(Paragraph("📈 EVENTOS POR MÊS", self.styles.styles['CabecSecao']))
             chart = self.charts.create_bar_chart(
                 metrics['eventos_por_mes'],
                 "Eventos por Mês",
@@ -468,7 +468,7 @@ class RelatorioEventos(RelatorioBase):
         
         # 6. Nova página para lista detalhada
         story.append(PageBreak())
-        story.append(Paragraph("📋 LISTA DETALHADA DE EVENTOS", self.styles['TituloPrincipal']))
+        story.append(Paragraph("📋 LISTA DETALHADA DE EVENTOS", self.styles.styles['TituloPrincipal']))
         story.append(Spacer(1, 0.2*inch))
         
         # 7. Tabela de eventos
