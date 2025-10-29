@@ -190,11 +190,31 @@ class MembroViewSet(viewsets.ModelViewSet):
         return queryset
     
     def perform_create(self, serializer):
-        # Assumir que o usuário autenticado é um Admin
-        try:
-            admin = Admin.objects.get(email=self.request.user.username)
+        # Buscar admin para associar ao membro
+        admin = None
+        
+        # Tentar buscar admin pelo email do usuário
+        if hasattr(self.request.user, 'email'):
+            try:
+                admin = Admin.objects.get(email=self.request.user.email)
+            except Admin.DoesNotExist:
+                pass
+        
+        # Se não encontrou, tentar pelo username
+        if not admin:
+            try:
+                admin = Admin.objects.get(email=self.request.user.username)
+            except Admin.DoesNotExist:
+                pass
+        
+        # Se ainda não encontrou, usar o primeiro admin disponível
+        if not admin:
+            admin = Admin.objects.first()
+        
+        # Salvar com admin (se encontrado) ou sem admin
+        if admin:
             serializer.save(cadastrado_por=admin)
-        except Admin.DoesNotExist:
+        else:
             serializer.save()
 
 class EventoViewSet(viewsets.ModelViewSet):

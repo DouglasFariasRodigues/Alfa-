@@ -40,7 +40,7 @@ class MembroSerializer(serializers.ModelSerializer):
 class MembroCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Membro
-        exclude = ['created_at', 'updated_at', 'deleted_at', 'is_active', 'cadastrado_por']
+        exclude = ['created_at', 'updated_at', 'deleted_at', 'is_active']
     
     def to_internal_value(self, data):
         # Converter strings vazias para None

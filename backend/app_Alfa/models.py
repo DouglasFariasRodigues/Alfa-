@@ -203,11 +203,11 @@ class Membro(BaseModel):
     
     # Dados pessoais
     nome = models.CharField(max_length=200, help_text="Nome completo do membro")
-    cpf = models.CharField(max_length=14, unique=True, blank=True, null=True, validators=[validate_cpf], help_text="CPF válido (apenas números)")
-    rg = models.CharField(max_length=20, blank=True, null=True, validators=[validate_rg], help_text="RG válido")
-    data_nascimento = models.DateField(blank=True, null=True, validators=[validate_age], help_text="Data de nascimento (idade mínima 18 anos)")
-    telefone = models.CharField(max_length=15, blank=True, null=True, validators=[validate_phone], help_text="Telefone com DDD (10 ou 11 dígitos)")
-    email = models.EmailField(validators=[EmailValidator(), validate_email_domain], help_text="Email válido")
+    cpf = models.CharField(max_length=14, blank=True, null=True, help_text="CPF (opcional)")
+    rg = models.CharField(max_length=20, blank=True, null=True, help_text="RG (opcional)")
+    data_nascimento = models.DateField(blank=True, null=True, help_text="Data de nascimento (opcional)")
+    telefone = models.CharField(max_length=15, blank=True, null=True, help_text="Telefone (opcional)")
+    email = models.EmailField(validators=[EmailValidator()], help_text="Email válido")
     endereco = models.TextField(blank=True, null=True, help_text="Endereço completo")
     senha = models.CharField(max_length=128, blank=True, null=True, validators=[validate_password_strength], help_text="Senha para acesso ao sistema. Deve ter pelo menos 6 caracteres, conter letras e números")
     last_login = models.DateTimeField(null=True, blank=True)

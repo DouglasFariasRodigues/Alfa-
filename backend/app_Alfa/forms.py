@@ -90,23 +90,17 @@ class MembroForm(forms.ModelForm):
     
     def clean_cpf(self):
         cpf = self.cleaned_data.get('cpf')
-        if cpf:
-            validate_cpf(cpf)
-            # Verificar se CPF já existe
-            if Membro.objects.filter(cpf=cpf).exclude(pk=self.instance.pk).exists():
-                raise ValidationError('Este CPF já está cadastrado.')
+        # CPF é opcional, sem validações
         return cpf
     
     def clean_rg(self):
         rg = self.cleaned_data.get('rg')
-        if rg:
-            validate_rg(rg)
+        # RG é opcional, sem validações
         return rg
     
     def clean_telefone(self):
         telefone = self.cleaned_data.get('telefone')
-        if telefone:
-            validate_phone(telefone)
+        # Telefone é opcional, sem validações
         return telefone
     
     def clean_email(self):

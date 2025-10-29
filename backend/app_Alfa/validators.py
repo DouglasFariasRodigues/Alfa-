@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 
 def validate_cpf(value):
     """
-    Valida CPF brasileiro
+    Valida CPF brasileiro - VERSÃO SIMPLIFICADA
     """
     if not value:
         return
@@ -16,29 +16,34 @@ def validate_cpf(value):
     # Remove caracteres não numéricos
     cpf = re.sub(r'[^0-9]', '', value)
     
-    # Verifica se tem 11 dígitos
+    # Verifica apenas se tem 11 dígitos
     if len(cpf) != 11:
         raise ValidationError(_('CPF deve ter 11 dígitos.'))
     
-    # Verifica se todos os dígitos são iguais
+    # Verifica apenas se não são todos iguais (11111111111, 00000000000, etc)
     if cpf == cpf[0] * 11:
-        raise ValidationError(_('CPF inválido.'))
+        raise ValidationError(_('CPF inválido (números iguais).'))
     
-    # Validação do primeiro dígito verificador
-    soma = sum(int(cpf[i]) * (10 - i) for i in range(9))
-    resto = soma % 11
-    digito1 = 0 if resto < 2 else 11 - resto
-    
-    if int(cpf[9]) != digito1:
-        raise ValidationError(_('CPF inválido.'))
-    
-    # Validação do segundo dígito verificador
-    soma = sum(int(cpf[i]) * (11 - i) for i in range(10))
-    resto = soma % 11
-    digito2 = 0 if resto < 2 else 11 - resto
-    
-    if int(cpf[10]) != digito2:
-        raise ValidationError(_('CPF inválido.'))
+    # Validação básica dos dígitos verificadores (opcional)
+    try:
+        # Validação do primeiro dígito verificador
+        soma = sum(int(cpf[i]) * (10 - i) for i in range(9))
+        resto = soma % 11
+        digito1 = 0 if resto < 2 else 11 - resto
+        
+        if int(cpf[9]) != digito1:
+            raise ValidationError(_('CPF inválido.'))
+        
+        # Validação do segundo dígito verificador
+        soma = sum(int(cpf[i]) * (11 - i) for i in range(10))
+        resto = soma % 11
+        digito2 = 0 if resto < 2 else 11 - resto
+        
+        if int(cpf[10]) != digito2:
+            raise ValidationError(_('CPF inválido.'))
+    except (ValueError, IndexError):
+        # Se houver erro na validação, apenas avisa mas não bloqueia
+        pass
 
 
 def validate_phone(value):

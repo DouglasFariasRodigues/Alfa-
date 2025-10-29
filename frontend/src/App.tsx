@@ -24,9 +24,7 @@ import Configuracoes from "./pages/Configuracoes";
 import Cargos from "./pages/Cargos";
 import NovoCargo from "./pages/NovoCargo";
 import DetalhesCargo from "./pages/DetalhesCargo";
-import PermissionTest from "./pages/PermissionTest";
 import MemberDashboard from "./pages/MemberDashboard";
-import TestMemberFeatures from "./pages/TestMemberFeatures";
 import NotFound from "./pages/NotFound";
 // Páginas para membros comuns (visualização)
 import MembrosVisualizacao from "./pages/MembrosVisualizacao";
@@ -51,15 +49,6 @@ const App = () => (
           {/* Login */}
           <Route path="/login" element={<Login />} />
           
-          {/* Teste de Permissões */}
-          <Route path="/permission-test" element={<PermissionTest />} />
-          
-          {/* Teste de Funcionalidades para Membros */}
-          <Route path="/test-member-features" element={
-            <ProtectedRoute>
-              <AppLayout><TestMemberFeatures /></AppLayout>
-            </ProtectedRoute>
-          } />
           
           {/* Dashboard para Membros */}
           <Route path="/member-dashboard" element={
