@@ -4,7 +4,7 @@ Testa cadastro com dados pessoais e geração automática de cartão de membro,
 transferência de igreja e registro.
 """
 from behave import given, when, then
-from app_alfa.models import Admin, Membro, DocumentoMembro
+from app_Alfa.models import Admin, Membro, DocumentoMembro
 from datetime import datetime
 
 # Admin cadastra novo membro com dados pessoais (tabela)

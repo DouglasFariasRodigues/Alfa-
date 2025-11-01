@@ -3,7 +3,7 @@ Steps para testar acesso completo do Admin.
 Testa se o Admin consegue acessar todas as áreas da aplicação após login.
 """
 from behave import given, when, then
-from app_alfa.models import Admin, Oferta, Evento, FotoEvento, Usuario
+from app_Alfa.models import Admin, Oferta, Evento, FotoEvento, Usuario
 from decimal import Decimal
 from django.utils import timezone
 
@@ -11,13 +11,13 @@ from django.utils import timezone
 @given('que existe um Admin cadastrado com email "{email}" e senha "{senha}"')
 @given('existe um Admin cadastrado com email "{email}" e senha "{senha}"')
 def step_given_admin_with_credentials(context, email, senha):
-    # Cria Admin com permissões de staff (acesso total)
+    # Cria Admin com permissões de admin (acesso total)
     context.admin = Admin.objects.create(
         nome="Admin Teste",
         email=email,
         senha=senha,
         is_active=True,
-        is_staff=True
+        is_admin=True
     )
 
 # Passo: Criar um Admin já autenticado no sistema
@@ -30,7 +30,7 @@ def step_given_authenticated_admin(context):
         email="admin@autenticado.com",
         senha="senha123",
         is_active=True,
-        is_staff=True
+        is_admin=True
     )
     context.admin_authenticated = True
 

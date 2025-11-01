@@ -3,7 +3,7 @@ Steps para gerenciamento de ofertas e distribuição para ONGs.
 Testa transparência no direcionamento de valores arrecadados para instituições.
 """
 from behave import given, when, then
-from app_alfa.models import Admin, ONG, Oferta, DistribuicaoOferta
+from app_Alfa.models import Admin, ONG, Oferta, DistribuicaoOferta
 from decimal import Decimal
 import hashlib
 

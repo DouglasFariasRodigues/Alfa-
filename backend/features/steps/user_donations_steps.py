@@ -3,7 +3,7 @@ Steps para doações de usuários/membros.
 Testa se membros conseguem fazer doações para grupos e ofertas da igreja.
 """
 from behave import given, when, then
-from app_alfa.models import Usuario, Membro, Grupo, Doacao, Admin, Oferta
+from app_Alfa.models import Usuario, Membro, Grupo, Doacao, Admin, Oferta
 from decimal import Decimal
 
 # Criar grupo para receber doações (Missões, Construção, etc.)

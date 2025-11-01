@@ -3,7 +3,7 @@ Steps para visualização de fotos de eventos pelo Admin.
 Testa se o Admin consegue ver fotos dos eventos e cultos realizados na igreja.
 """
 from behave import given, when, then
-from app_alfa.models import Admin, Usuario, Evento, FotoEvento
+from app_Alfa.models import Admin, Usuario, Evento, FotoEvento
 from django.core.files.uploadedfile import SimpleUploadedFile
 from datetime import datetime
 from django.utils import timezone
@@ -17,7 +17,7 @@ def step_given_admin_logged(context):
         email="admin@test.com",
         senha="password123",
         is_active=True,
-        is_staff=True
+        is_admin=True
     )
     
     # Criar usuário organizador para os eventos

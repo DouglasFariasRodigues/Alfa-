@@ -3,12 +3,12 @@ import django
 from django.conf import settings
 from django.test.utils import get_runner
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'alfa_project.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Alfa_project.settings')
 django.setup()
 
 def before_scenario(context, scenario):
     """Limpar o banco de dados antes de cada cenário"""
-    from app_alfa.models import (Admin, Usuario, Evento, FotoEvento, Membro,
+    from app_Alfa.models import (Admin, Usuario, Evento, FotoEvento, Membro,
                                   Postagem, FotoPostagem, Cargo, ONG, Oferta, DistribuicaoOferta,
                                   DocumentoMembro, Grupo, Doacao)
     

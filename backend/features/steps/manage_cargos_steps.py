@@ -3,7 +3,7 @@ Steps para gerenciamento de cargos da igreja.
 Testa criação e visualização de cargos como Pastor, Diácono, Líder de Louvor, etc.
 """
 from behave import given, when, then
-from app_alfa.models import Admin, Cargo
+from app_Alfa.models import Admin, Cargo
 
 # Passo: Admin cria um novo cargo
 @when('o Admin cria o cargo "{nome}" com descrição "{descricao}"')

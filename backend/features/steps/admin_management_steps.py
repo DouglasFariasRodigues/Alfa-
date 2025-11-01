@@ -3,7 +3,7 @@ Steps para gerenciamento do Admin.
 Testa acesso do Admin às áreas de publicações e ofertas, e registro de ofertas com transparência.
 """
 from behave import given, when, then
-from app_alfa.models import Admin, Oferta, DistribuicaoOferta, ONG
+from app_Alfa.models import Admin, Oferta, DistribuicaoOferta, ONG
 from decimal import Decimal
 
 # Passo: Criar Admin apenas com email (senha padrão)
@@ -20,7 +20,7 @@ def step_given_admin_exists_with_email(context, email):
         email=email,
         senha="senha123",
         is_active=True,
-        is_staff=True
+        is_admin=True
     )
 
 
@@ -39,14 +39,14 @@ def step_when_admin_logs_in(context, email, senha):
 def step_when_admin_accesses_publications(context):
     # Verifica se Admin logado tem permissão de staff
     if context.admin_logado:
-        context.has_publication_access = context.admin.is_staff
+        context.has_publication_access = context.admin.is_admin
 
 # Passo: Admin acessa área de ofertas
 @when('o Admin acessa a área de ofertas')
 def step_when_admin_accesses_ofertas(context):
     # Verifica se Admin logado tem permissão de staff
     if context.admin_logado:
-        context.has_oferta_access = context.admin.is_staff
+        context.has_oferta_access = context.admin.is_admin
 
 # Passo: Admin registra oferta com descrição
 @when('o Admin registra uma oferta de {valor:f} com descrição "{descricao}"')
