@@ -21,15 +21,15 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from app_alfa import views
-from app_alfa.viewsets import (
+from app_Alfa import views
+from app_Alfa.viewsets import (
     AuthViewSet, MembroViewSet, EventoViewSet, PostagemViewSet,
     TransacaoViewSet, OfertaViewSet, CargoViewSet, AdminViewSet,
     ONGViewSet, IgrejaViewSet, GrupoViewSet, DoacaoViewSet,
     TransferenciaViewSet, FotoEventoViewSet, FotoPostagemViewSet,
     DocumentoMembroViewSet, EventoPresencaViewSet, EventoComentarioViewSet
 )
-from app_alfa.relatorio_views import (
+from app_Alfa.relatorio_views import (
     RelatorioMembrosView, RelatorioFinanceiroView, RelatorioEventosView,
     DashboardView, EstatisticasMembrosView, EstatisticasFinanceirasView,
     EstatisticasEventosView, ExportarMembrosView, ExportarTransacoesView

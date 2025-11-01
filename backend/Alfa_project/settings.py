@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    'app_alfa.apps.AppalfaConfig',
+    'app_Alfa.apps.AppalfaConfig',
 ]
 
 MIDDLEWARE = [
@@ -54,12 +54,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'alfa_project.urls'
+ROOT_URLCONF = 'Alfa_project.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'alfa_project' / 'templates'],
+        'DIRS': [BASE_DIR / 'Alfa_project' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -71,7 +71,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'alfa_project.wsgi.application'
+WSGI_APPLICATION = 'Alfa_project.wsgi.application'
 
 
 # Banco de dados

@@ -8,7 +8,7 @@ from django.utils import timezone
 from decimal import Decimal
 from datetime import date
 
-from app_alfa.models import (
+from app_Alfa.models import (
     Admin, Usuario, Membro, Grupo, Doacao, Igreja, 
     Evento, Postagem, FotoEvento, FotoPostagem, 
     Cargo, ONG, Oferta, DistribuicaoOferta, DocumentoMembro

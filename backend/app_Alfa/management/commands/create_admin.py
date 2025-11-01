@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from app_alfa.models import Admin, Cargo
+from app_Alfa.models import Admin, Cargo
 
 class Command(BaseCommand):
     help = 'Cria um administrador padrão'
