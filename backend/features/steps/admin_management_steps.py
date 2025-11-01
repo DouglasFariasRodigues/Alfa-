@@ -5,6 +5,8 @@ Testa acesso do Admin às áreas de publicações e ofertas, e registro de ofert
 from behave import given, when, then
 from app_Alfa.models import Admin, Oferta, DistribuicaoOferta, ONG
 from decimal import Decimal
+from rest_framework.test import APIClient
+from rest_framework import status
 
 # Passo: Criar Admin apenas com email (senha padrão)
 @given('que existe um Admin cadastrado com email "{email}"')
@@ -27,8 +29,29 @@ def step_given_admin_exists_with_email(context, email):
 # Passo: Admin tenta fazer login
 @when('o Admin faz login com email "{email}" e senha "{senha}"')
 def step_when_admin_logs_in(context, email, senha):
-    # Busca Admin no banco com as credenciais fornecidas
-    admin = Admin.objects.filter(email=email, senha=senha).first()
+    # Garantir que admin tem senha hasheada
+    admin = Admin.objects.filter(email=email).first()
+    if admin and not admin.senha.startswith('pbkdf2_'):
+        admin.set_password(senha)
+        admin.save()
+    
+    context.client = APIClient()
+    
+    # Fazer requisição POST para endpoint de login
+    response = context.client.post('/api/auth/login/', {
+        'email': email,
+        'senha': senha
+    }, format='json')
+    
+    context.login_response = response
+    context.login_status = response.status_code
+    
+    # Armazenar token para próximas requisições
+    if context.login_status == status.HTTP_200_OK:
+        data = response.json()
+        context.access_token = data.get('access_token') or data.get('access')
+    
+    # Também manter compatibilidade com verificação em banco
     context.admin_logado = admin is not None
     context.admin_authenticated = admin is not None  # Para compatibilidade com outras features
     if admin:

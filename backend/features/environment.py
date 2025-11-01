@@ -21,9 +21,11 @@ def before_scenario(context, scenario):
     FotoEvento.objects.all().delete()
     Postagem.objects.all().delete()
     Evento.objects.all().delete()
-    Cargo.objects.all().delete()
     ONG.objects.all().delete()
     Grupo.objects.all().delete()
+    # Deletar usuários antes de deletar cargo (por causa das foreign keys)
     Membro.objects.all().delete()
     Usuario.objects.all().delete()
     Admin.objects.all().delete()
+    # Deletar cargo por último
+    Cargo.objects.all().delete()

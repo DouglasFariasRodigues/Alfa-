@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, BasePermission
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
@@ -23,6 +23,89 @@ from .serializers import (
     FotoPostagemSerializer, EventoPresencaSerializer, EventoPresencaCreateSerializer,
     EventoComentarioSerializer, EventoComentarioCreateSerializer
 )
+
+
+# Custom Permissions
+class CanRegisterTransacao(BasePermission):
+    """Permissão customizada para registrar transações baseada no cargo"""
+    message = "Você não tem permissões insuficientes para registrar transações."
+    
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        if request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return True
+        
+        # Para POST (create), verificar permissão de registrar dízimos
+        try:
+            admin = Admin.objects.get(email=request.user.username)
+            if admin.cargo and not admin.cargo.pode_registrar_dizimos:
+                return False
+            return True
+        except Admin.DoesNotExist:
+            try:
+                usuario = Usuario.objects.get(email=request.user.username)
+                if usuario.cargo and not usuario.cargo.pode_registrar_dizimos:
+                    return False
+                return True
+            except Usuario.DoesNotExist:
+                return False
+
+
+class CanManageMembros(BasePermission):
+    """Permissão customizada para gerenciar membros baseada no cargo"""
+    message = "Você não tem permissões insuficientes para gerenciar membros."
+    
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        if request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return True
+        
+        # Para POST/PUT/DELETE, verificar permissão de gerenciar membros
+        try:
+            admin = Admin.objects.get(email=request.user.username)
+            if admin.cargo and not admin.cargo.pode_gerenciar_membros:
+                return False
+            return True
+        except Admin.DoesNotExist:
+            try:
+                usuario = Usuario.objects.get(email=request.user.username)
+                if usuario.cargo and not usuario.cargo.pode_gerenciar_membros:
+                    return False
+                return True
+            except Usuario.DoesNotExist:
+                return False
+
+
+class CanManageEventos(BasePermission):
+    """Permissão customizada para gerenciar eventos baseada no cargo"""
+    message = "Você não tem permissões insuficientes para gerenciar eventos."
+    
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        if request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return True
+        
+        # Para POST/PUT/DELETE, verificar permissão de gerenciar eventos
+        try:
+            admin = Admin.objects.get(email=request.user.username)
+            if admin.cargo and not admin.cargo.pode_gerenciar_eventos:
+                return False
+            return True
+        except Admin.DoesNotExist:
+            try:
+                usuario = Usuario.objects.get(email=request.user.username)
+                if usuario.cargo and not usuario.cargo.pode_gerenciar_eventos:
+                    return False
+                return True
+            except Usuario.DoesNotExist:
+                return False
+
 
 class AuthViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], permission_classes=[])
@@ -163,9 +246,55 @@ class AuthViewSet(viewsets.ViewSet):
                 'message': 'Membro não encontrado'
             }, status=status.HTTP_404_NOT_FOUND)
 
+    @action(detail=False, methods=['post'], permission_classes=[])
+    def login_usuario(self, request):
+        """Login de usuario (staff/colaborador)"""
+        email = request.data.get('email')
+        senha = request.data.get('senha')
+        
+        if not email or not senha:
+            return Response({
+                'success': False,
+                'message': 'Email e senha são obrigatórios'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            usuario = Usuario.objects.get(email=email)
+            
+            if usuario.check_password(senha):
+                # Atualizar last_login
+                usuario.last_login = timezone.now()
+                usuario.save()
+                
+                # Criar token JWT
+                user, created = User.objects.get_or_create(
+                    username=usuario.email,
+                    defaults={'email': usuario.email, 'is_staff': True}
+                )
+                refresh = RefreshToken.for_user(user)
+                
+                return Response({
+                    'success': True,
+                    'message': 'Login realizado com sucesso',
+                    'access_token': str(refresh.access_token),
+                    'refresh_token': str(refresh),
+                    'user': UsuarioSerializer(usuario).data,
+                    'user_type': 'usuario'
+                })
+            else:
+                return Response({
+                    'success': False,
+                    'message': 'Credenciais inválidas'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+        except Usuario.DoesNotExist:
+            return Response({
+                'success': False,
+                'message': 'Usuário não encontrado'
+            }, status=status.HTTP_404_NOT_FOUND)
+
 class MembroViewSet(viewsets.ModelViewSet):
     queryset = Membro.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CanManageMembros]
     
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -219,7 +348,7 @@ class MembroViewSet(viewsets.ModelViewSet):
 
 class EventoViewSet(viewsets.ModelViewSet):
     queryset = Evento.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CanManageEventos]
     
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -309,7 +438,7 @@ class PostagemViewSet(viewsets.ModelViewSet):
 
 class TransacaoViewSet(viewsets.ModelViewSet):
     queryset = Transacao.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CanRegisterTransacao]
     
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
