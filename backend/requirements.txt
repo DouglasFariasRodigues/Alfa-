@@ -10,5 +10,8 @@ pluggy==1.5.0
 pytest==8.3.4
 six==1.17.0
 ReportLab==4.2.2
-Weasyprint==61.2djangorestframework==3.15.2
+Weasyprint==61.2
+djangorestframework==3.15.2
 djangorestframework-simplejwt==5.3.1
+django-cors-headers==4.4.0
+python-decouple==3.8
