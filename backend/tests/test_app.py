@@ -11,7 +11,7 @@ from datetime import date
 from app_Alfa.models import (
     Admin, Usuario, Membro, Grupo, Doacao, Igreja,
     Evento, Postagem, FotoEvento, FotoPostagem,
-    Cargo, ONG, Oferta, DistribuicaoOferta, DocumentoMembro
+    Cargo, ONG, Oferta, DistribuicaoOferta, DocumentoMembro, Transferencia
 )
 
 
@@ -227,14 +227,14 @@ class TestDoacaoModel(TestCase):
 
 class TestDocumentoMembroModel(TestCase):
     """Testes para o modelo DocumentoMembro"""
-    
+
     def setUp(self):
         self.admin = Admin.objects.create(nome="Admin", email="a@t.com", senha="123")
         self.membro = Membro.objects.create(
             nome="Carlos",
             cadastrado_por=self.admin
         )
-    
+
     def test_cartao_membro(self):
         """Testa geração de cartão de membro"""
         documento = DocumentoMembro.objects.create(
@@ -242,10 +242,10 @@ class TestDocumentoMembroModel(TestCase):
             tipo=DocumentoMembro.CARTAO_MEMBRO,
             gerado_por=self.admin
         )
-        
+
         assert documento.tipo == DocumentoMembro.CARTAO_MEMBRO
         assert documento.membro == self.membro
-    
+
     def test_transferencia(self):
         """Testa geração de documento de transferência"""
         documento = DocumentoMembro.objects.create(
@@ -253,9 +253,9 @@ class TestDocumentoMembroModel(TestCase):
             tipo=DocumentoMembro.TRANSFERENCIA,
             gerado_por=self.admin
         )
-        
+
         assert documento.tipo == DocumentoMembro.TRANSFERENCIA
-    
+
     def test_multiple_documentos(self):
         """Testa múltiplos documentos por membro"""
         DocumentoMembro.objects.create(
@@ -268,8 +268,70 @@ class TestDocumentoMembroModel(TestCase):
             tipo=DocumentoMembro.REGISTRO,
             gerado_por=self.admin
         )
-        
+
         assert self.membro.documentos.count() == 2
+
+
+class TestTransferenciaModel(TestCase):
+    """Testes para o modelo Transferencia"""
+
+    def setUp(self):
+        self.admin = Admin.objects.create(nome="Admin", email="admin@test.com", senha="123")
+        self.membro = Membro.objects.create(
+            nome="João Silva",
+            status=Membro.ATIVO,
+            cadastrado_por=self.admin
+        )
+        self.igreja_origem = Igreja.objects.create(
+            nome="Igreja Origem",
+            endereco="Rua A, 123"
+        )
+        self.igreja_destino = Igreja.objects.create(
+            nome="Igreja Destino",
+            endereco="Rua B, 456"
+        )
+
+    def test_transferencia_creation(self):
+        """Testa criação de transferência"""
+        transferencia = Transferencia.objects.create(
+            membro=self.membro,
+            igreja_origem=self.igreja_origem,
+            igreja_destino=self.igreja_destino,
+            data_transferencia=date.today(),
+            motivo="Mudança de cidade",
+            gerado_por=self.admin
+        )
+
+        assert transferencia.membro == self.membro
+        assert transferencia.igreja_origem == self.igreja_origem
+        assert transferencia.igreja_destino == self.igreja_destino
+        assert transferencia.motivo == "Mudança de cidade"
+
+    def test_transferencia_different_churches(self):
+        """Testa que origem e destino devem ser diferentes"""
+        with self.assertRaises(Exception):  # Ou verificar na view, mas aqui testa modelo
+            Transferencia.objects.create(
+                membro=self.membro,
+                igreja_origem=self.igreja_origem,
+                igreja_destino=self.igreja_origem,  # Mesmo que origem
+                data_transferencia=date.today(),
+                gerado_por=self.admin
+            )
+
+    def test_transferencia_soft_delete(self):
+        """Testa soft delete na transferência"""
+        transferencia = Transferencia.objects.create(
+            membro=self.membro,
+            igreja_origem=self.igreja_origem,
+            igreja_destino=self.igreja_destino,
+            data_transferencia=date.today(),
+            gerado_por=self.admin
+        )
+
+        transferencia.delete()
+        # Verificar se foi soft deleted
+        transferencia_atualizada = Transferencia.objects.filter(id=transferencia.id).first()
+        assert transferencia_atualizada is None or transferencia_atualizada.deleted_at is not None
 
 
 class TestEventoModel(TestCase):

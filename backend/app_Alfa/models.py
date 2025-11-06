@@ -195,6 +195,19 @@ class Transferencia(BaseModel):
     motivo = models.TextField(blank=True)
     gerado_por = models.ForeignKey(Admin, on_delete=models.SET_NULL, null=True, related_name='transferencias_geradas')
 
+    def save(self, *args, **kwargs):
+        if self.igreja_origem == self.igreja_destino:
+            raise ValueError("Igreja origem e destino devem ser diferentes")
+        super().save(*args, **kwargs)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=~models.Q(igreja_origem=models.F('igreja_destino')),
+                name='igreja_origem_diferente_destino'
+            )
+        ]
+
 class Transacao(BaseModel):
     ENTRADA = 'entrada'
     SAIDA = 'saida'

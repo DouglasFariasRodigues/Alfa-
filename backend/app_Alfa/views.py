@@ -1,13 +1,15 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
+from django.template.loader import render_to_string
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from .models import Transferencia, Membro, Transacao, Evento, Postagem, Usuario, Admin, Comentario
+from .models import Transferencia, Membro, Transacao, Evento, Postagem, Usuario, Admin, Comentario, Igreja
 from io import BytesIO
 from django.views.decorators.csrf import csrf_exempt
 import json
+import weasyprint
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -17,26 +19,9 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 def gerar_pdf_transferencia(request, transferencia_id):
     try:
         transferencia = Transferencia.objects.get(id=transferencia_id)
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter)
-        styles = getSampleStyleSheet()
-        story = []
-
-        # Título
-        title = Paragraph("Documento de Transferência de Membro", styles['Title'])
-        story.append(title)
-        story.append(Spacer(1, 12))
-
-        # Dados
-        story.append(Paragraph(f"Membro: {transferencia.membro.nome}", styles['Normal']))
-        story.append(Paragraph(f"Igreja Origem: {transferencia.igreja_origem.nome}", styles['Normal']))
-        story.append(Paragraph(f"Igreja Destino: {transferencia.igreja_destino.nome}", styles['Normal']))
-        story.append(Paragraph(f"Data: {transferencia.data_transferencia}", styles['Normal']))
-        story.append(Paragraph(f"Motivo: {transferencia.motivo}", styles['Normal']))
-
-        doc.build(story)
-        buffer.seek(0)
-        response = HttpResponse(buffer, content_type='application/pdf')
+        html_string = render_to_string('transferencia_template.html', {'transferencia': transferencia})
+        pdf = weasyprint.HTML(string=html_string).write_pdf()
+        response = HttpResponse(pdf, content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="transferencia_{transferencia_id}.pdf"'
         return response
     except Transferencia.DoesNotExist:
@@ -247,4 +232,100 @@ def comentario_create(request):
         return JsonResponse({
             'success': False,
             'message': f'Erro ao criar comentário: {str(e)}'
+        }, status=400)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def transferencia_create(request):
+    try:
+        data = request.data
+
+        # Usar o usuário autenticado via JWT
+        user = request.user
+        admin_user = Admin.objects.filter(user_ptr=user).first()
+        if not admin_user or not admin_user.cargo:
+            return JsonResponse({
+                'success': False,
+                'message': 'Admin sem cargo definido ou permissões insuficientes'
+            }, status=403)
+
+        # Verificar se o membro existe
+        membro_id = data.get('membro_id')
+        if not membro_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'membro_id é obrigatório'
+            }, status=400)
+        try:
+            membro = Membro.objects.get(id=membro_id)
+        except Membro.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Membro não encontrado'
+            }, status=404)
+
+        # Verificar se a igreja origem existe
+        igreja_origem_id = data.get('igreja_origem_id')
+        if not igreja_origem_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'igreja_origem_id é obrigatório'
+            }, status=400)
+        try:
+            igreja_origem = Igreja.objects.get(id=igreja_origem_id)
+        except Igreja.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Igreja origem não encontrada'
+            }, status=404)
+
+        # Verificar se a igreja destino existe
+        igreja_destino_id = data.get('igreja_destino_id')
+        if not igreja_destino_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'igreja_destino_id é obrigatório'
+            }, status=400)
+        try:
+            igreja_destino = Igreja.objects.get(id=igreja_destino_id)
+        except Igreja.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Igreja destino não encontrada'
+            }, status=404)
+
+        # Verificar se origem e destino são diferentes
+        if igreja_origem_id == igreja_destino_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'Igreja origem e destino devem ser diferentes'
+            }, status=400)
+
+        # Verificar se data_transferencia foi fornecida
+        data_transferencia = data.get('data_transferencia')
+        if not data_transferencia:
+            return JsonResponse({
+                'success': False,
+                'message': 'data_transferencia é obrigatória'
+            }, status=400)
+
+        # Criar a transferência
+        transferencia = Transferencia.objects.create(
+            membro=membro,
+            igreja_origem=igreja_origem,
+            igreja_destino=igreja_destino,
+            data_transferencia=data_transferencia,
+            motivo=data.get('motivo', ''),
+            gerado_por=admin_user
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Transferência criada com sucesso!',
+            'transferencia_id': transferencia.id
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao criar transferência: {str(e)}'
         }, status=400)
