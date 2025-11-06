@@ -5,8 +5,11 @@ Testes unitários para modelos, validações e lógica de negócio.
 import pytest
 from django.test import TestCase
 from django.utils import timezone
+from django.core.files.uploadedfile import SimpleUploadedFile
 from decimal import Decimal
 from datetime import date
+from io import BytesIO
+from PIL import Image
 
 from app_Alfa.models import (
     Admin, Usuario, Membro, Grupo, Doacao, Igreja, 
@@ -2001,6 +2004,528 @@ class TestOfertaAdvanced(TestCase):
         )
         
         assert oferta.descricao is None or oferta.descricao == ""
+
+
+# ============= UPLOAD TESTS =============
+
+class TestUploadFotos(TestCase):
+    """Testes para upload de fotos de eventos"""
+    
+    def setUp(self):
+        """Configuração inicial"""
+        self.usuario = Usuario.objects.create(
+            username="fotografo",
+            email="foto@test.com",
+            senha="u123"
+        )
+        
+        self.evento = Evento.objects.create(
+            titulo="Evento com Fotos",
+            descricao="Evento para testar fotos",
+            data=timezone.now(),
+            local="Local Teste",
+            organizador=self.usuario
+        )
+    
+    def _criar_arquivo_imagem(self, nome="test.jpg", tamanho=(100, 100)):
+        """Helper para criar arquivo de imagem"""
+        imagem = Image.new('RGB', tamanho, color='red')
+        arquivo_io = BytesIO()
+        imagem.save(arquivo_io, format='JPEG')
+        arquivo_io.seek(0)
+        return SimpleUploadedFile(
+            nome,
+            arquivo_io.getvalue(),
+            content_type='image/jpeg'
+        )
+    
+    def test_upload_foto_jpeg(self):
+        """Testa upload de foto JPEG"""
+        foto_arquivo = self._criar_arquivo_imagem(nome="teste.jpg")
+        
+        foto = FotoEvento.objects.create(
+            evento=self.evento,
+            imagem=foto_arquivo,
+            descricao="Foto JPEG do evento"
+        )
+        
+        assert foto.evento == self.evento
+        assert foto.imagem.name is not None
+    
+    def test_upload_foto_png(self):
+        """Testa upload de foto PNG"""
+        imagem = Image.new('RGB', (100, 100), color='blue')
+        arquivo_io = BytesIO()
+        imagem.save(arquivo_io, format='PNG')
+        arquivo_io.seek(0)
+        
+        foto_arquivo = SimpleUploadedFile(
+            "teste.png",
+            arquivo_io.getvalue(),
+            content_type='image/png'
+        )
+        
+        foto = FotoEvento.objects.create(
+            evento=self.evento,
+            imagem=foto_arquivo
+        )
+        
+        assert foto.imagem.name is not None
+    
+    def test_foto_com_descricao(self):
+        """Testa foto com descrição"""
+        foto_arquivo = self._criar_arquivo_imagem()
+        descricao = "Foto linda do culto"
+        
+        foto = FotoEvento.objects.create(
+            evento=self.evento,
+            imagem=foto_arquivo,
+            descricao=descricao
+        )
+        
+        assert foto.descricao == descricao
+    
+    def test_foto_sem_descricao(self):
+        """Testa foto sem descrição (opcional)"""
+        foto_arquivo = self._criar_arquivo_imagem()
+        
+        foto = FotoEvento.objects.create(
+            evento=self.evento,
+            imagem=foto_arquivo
+        )
+        
+        assert foto.descricao is None or foto.descricao == ""
+    
+    def test_foto_com_timestamp(self):
+        """Testa que foto tem timestamp de upload"""
+        foto_arquivo = self._criar_arquivo_imagem()
+        
+        foto = FotoEvento.objects.create(
+            evento=self.evento,
+            imagem=foto_arquivo
+        )
+        
+        assert foto.data_upload is not None
+    
+    def test_multiplas_fotos_mesmo_evento(self):
+        """Testa múltiplas fotos no mesmo evento"""
+        foto1 = FotoEvento.objects.create(
+            evento=self.evento,
+            imagem=self._criar_arquivo_imagem(nome="foto1.jpg"),
+            descricao="Foto 1"
+        )
+        
+        foto2 = FotoEvento.objects.create(
+            evento=self.evento,
+            imagem=self._criar_arquivo_imagem(nome="foto2.jpg"),
+            descricao="Foto 2"
+        )
+        
+        fotos = FotoEvento.objects.filter(evento=self.evento)
+        assert fotos.count() == 2
+    
+    def test_foto_com_nome_especial(self):
+        """Testa foto com nome contendo caracteres especiais"""
+        foto_arquivo = self._criar_arquivo_imagem(nome="foto_espécial_123.jpg")
+        
+        foto = FotoEvento.objects.create(
+            evento=self.evento,
+            imagem=foto_arquivo
+        )
+        
+        assert foto.imagem.name is not None
+    
+    def test_foto_delete(self):
+        """Testa exclusão de foto"""
+        foto_arquivo = self._criar_arquivo_imagem()
+        foto = FotoEvento.objects.create(
+            evento=self.evento,
+            imagem=foto_arquivo
+        )
+        
+        foto_id = foto.id
+        foto.delete()
+        
+        foto_deletada = FotoEvento.objects.filter(id=foto_id).first()
+        assert foto_deletada is None
+    
+    def test_fotos_diferentes_eventos(self):
+        """Testa fotos em eventos diferentes"""
+        evento2 = Evento.objects.create(
+            titulo="Outro Evento",
+            descricao="Outro evento",
+            data=timezone.now(),
+            local="Local 2",
+            organizador=self.usuario
+        )
+        
+        foto1 = FotoEvento.objects.create(
+            evento=self.evento,
+            imagem=self._criar_arquivo_imagem(nome="foto1.jpg")
+        )
+        
+        foto2 = FotoEvento.objects.create(
+            evento=evento2,
+            imagem=self._criar_arquivo_imagem(nome="foto2.jpg")
+        )
+        
+        assert foto1.evento != foto2.evento
+        assert FotoEvento.objects.filter(evento=self.evento).count() == 1
+        assert FotoEvento.objects.filter(evento=evento2).count() == 1
+
+
+class TestUploadDocumentos(TestCase):
+    """Testes para upload de documentos de membros"""
+    
+    def setUp(self):
+        """Configuração inicial"""
+        self.admin = Admin.objects.create(
+            nome="Admin",
+            email="admin@test.com",
+            senha="123"
+        )
+        
+        self.membro = Membro.objects.create(
+            nome="João Silva",
+            cadastrado_por=self.admin
+        )
+    
+    def _criar_arquivo_pdf(self, nome="documento.pdf"):
+        """Helper para criar arquivo PDF simulado"""
+        conteudo = b"%PDF-1.4\n%mock pdf content"
+        return SimpleUploadedFile(
+            nome,
+            conteudo,
+            content_type='application/pdf'
+        )
+    
+    def test_documento_cartao_membro(self):
+        """Testa documento de cartão de membro"""
+        documento = DocumentoMembro.objects.create(
+            membro=self.membro,
+            tipo=DocumentoMembro.CARTAO_MEMBRO,
+            gerado_por=self.admin
+        )
+        
+        assert documento.tipo == DocumentoMembro.CARTAO_MEMBRO
+        assert documento.membro == self.membro
+    
+    def test_documento_transferencia(self):
+        """Testa documento de transferência"""
+        documento = DocumentoMembro.objects.create(
+            membro=self.membro,
+            tipo=DocumentoMembro.TRANSFERENCIA,
+            gerado_por=self.admin
+        )
+        
+        assert documento.tipo == DocumentoMembro.TRANSFERENCIA
+    
+    def test_documento_registro(self):
+        """Testa documento de registro"""
+        documento = DocumentoMembro.objects.create(
+            membro=self.membro,
+            tipo=DocumentoMembro.REGISTRO,
+            gerado_por=self.admin
+        )
+        
+        assert documento.tipo == DocumentoMembro.REGISTRO
+    
+    def test_documento_com_arquivo(self):
+        """Testa documento com arquivo anexado"""
+        arquivo = self._criar_arquivo_pdf()
+        
+        documento = DocumentoMembro.objects.create(
+            membro=self.membro,
+            tipo=DocumentoMembro.CARTAO_MEMBRO,
+            arquivo=arquivo,
+            gerado_por=self.admin
+        )
+        
+        assert documento.arquivo.name is not None
+    
+    def test_documento_timestamp_geracao(self):
+        """Testa timestamp de geração do documento"""
+        documento = DocumentoMembro.objects.create(
+            membro=self.membro,
+            tipo=DocumentoMembro.CARTAO_MEMBRO,
+            gerado_por=self.admin
+        )
+        
+        assert documento.gerado_em is not None
+    
+    def test_multiplos_documentos_mesmo_membro(self):
+        """Testa múltiplos documentos para mesmo membro"""
+        doc1 = DocumentoMembro.objects.create(
+            membro=self.membro,
+            tipo=DocumentoMembro.CARTAO_MEMBRO,
+            gerado_por=self.admin
+        )
+        
+        doc2 = DocumentoMembro.objects.create(
+            membro=self.membro,
+            tipo=DocumentoMembro.TRANSFERENCIA,
+            gerado_por=self.admin
+        )
+        
+        documentos = DocumentoMembro.objects.filter(membro=self.membro)
+        assert documentos.count() == 2
+    
+    def test_documento_rastreamento_data(self):
+        """Testa rastreamento de data de geração do documento"""
+        documento = DocumentoMembro.objects.create(
+            membro=self.membro,
+            tipo=DocumentoMembro.CARTAO_MEMBRO,
+            gerado_por=self.admin
+        )
+        
+        assert documento.gerado_em is not None
+    
+    def test_documento_delete(self):
+        """Testa exclusão de documento"""
+        documento = DocumentoMembro.objects.create(
+            membro=self.membro,
+            tipo=DocumentoMembro.CARTAO_MEMBRO,
+            gerado_por=self.admin
+        )
+        
+        doc_id = documento.id
+        documento.delete()
+        
+        doc_deletado = DocumentoMembro.objects.filter(id=doc_id).first()
+        assert doc_deletado is None
+
+
+class TestUploadValidacoes(TestCase):
+    """Testes de validações de upload"""
+    
+    def setUp(self):
+        """Configuração inicial"""
+        self.usuario = Usuario.objects.create(
+            username="user1",
+            email="user1@test.com",
+            senha="u123"
+        )
+        
+        self.evento = Evento.objects.create(
+            titulo="Evento",
+            descricao="Teste",
+            data=timezone.now(),
+            local="Local",
+            organizador=self.usuario
+        )
+        
+        self.admin = Admin.objects.create(
+            nome="Admin",
+            email="admin@test.com",
+            senha="123"
+        )
+        
+        self.membro = Membro.objects.create(
+            nome="Membro",
+            cadastrado_por=self.admin
+        )
+    
+    def _criar_arquivo_imagem(self, nome="test.jpg", tamanho=(100, 100)):
+        """Helper para criar arquivo de imagem"""
+        imagem = Image.new('RGB', tamanho, color='red')
+        arquivo_io = BytesIO()
+        imagem.save(arquivo_io, format='JPEG')
+        arquivo_io.seek(0)
+        return SimpleUploadedFile(
+            nome,
+            arquivo_io.getvalue(),
+            content_type='image/jpeg'
+        )
+    
+    def test_foto_sem_arquivo(self):
+        """Testa que foto pode ser criada sem arquivo (campo opcional)"""
+        foto = FotoEvento.objects.create(
+            evento=self.evento,
+            imagem="",  # Campo vazio
+            descricao="Foto sem arquivo"
+        )
+        
+        assert foto is not None
+    
+    def test_documento_diferentes_tipos(self):
+        """Testa que documentos podem ter diferentes tipos"""
+        tipos = [
+            DocumentoMembro.CARTAO_MEMBRO,
+            DocumentoMembro.TRANSFERENCIA,
+            DocumentoMembro.REGISTRO
+        ]
+        
+        for tipo in tipos:
+            documento = DocumentoMembro.objects.create(
+                membro=self.membro,
+                tipo=tipo,
+                gerado_por=self.admin
+            )
+            assert documento.tipo == tipo
+    
+    def test_foto_grande(self):
+        """Testa upload de foto maior (500x500)"""
+        foto_arquivo = self._criar_arquivo_imagem(
+            nome="foto_grande.jpg",
+            tamanho=(500, 500)
+        )
+        
+        foto = FotoEvento.objects.create(
+            evento=self.evento,
+            imagem=foto_arquivo
+        )
+        
+        assert foto.imagem.name is not None
+    
+    def test_foto_pequena(self):
+        """Testa upload de foto pequena (50x50)"""
+        foto_arquivo = self._criar_arquivo_imagem(
+            nome="foto_pequena.jpg",
+            tamanho=(50, 50)
+        )
+        
+        foto = FotoEvento.objects.create(
+            evento=self.evento,
+            imagem=foto_arquivo
+        )
+        
+        assert foto.imagem.name is not None
+    
+    def test_foto_evento_rastreamento(self):
+        """Testa rastreamento de foto por evento"""
+        evento2 = Evento.objects.create(
+            titulo="Evento 2",
+            descricao="Teste 2",
+            data=timezone.now(),
+            local="Local 2",
+            organizador=self.usuario
+        )
+        
+        FotoEvento.objects.create(
+            evento=self.evento,
+            imagem=self._criar_arquivo_imagem()
+        )
+        
+        FotoEvento.objects.create(
+            evento=evento2,
+            imagem=self._criar_arquivo_imagem()
+        )
+        
+        fotos_evento1 = FotoEvento.objects.filter(evento=self.evento)
+        fotos_evento2 = FotoEvento.objects.filter(evento=evento2)
+        
+        assert fotos_evento1.count() == 1
+        assert fotos_evento2.count() == 1
+    
+    def test_documento_rastreamento_admin(self):
+        """Testa rastreamento de documento por admin"""
+        admin2 = Admin.objects.create(
+            nome="Admin 2",
+            email="admin2@test.com",
+            senha="456"
+        )
+        
+        doc1 = DocumentoMembro.objects.create(
+            membro=self.membro,
+            tipo=DocumentoMembro.CARTAO_MEMBRO,
+            gerado_por=self.admin
+        )
+        
+        doc2 = DocumentoMembro.objects.create(
+            membro=self.membro,
+            tipo=DocumentoMembro.TRANSFERENCIA,
+            gerado_por=admin2
+        )
+        
+        assert doc1.gerado_por == self.admin
+        assert doc2.gerado_por == admin2
+    
+    def test_foto_numero_grande(self):
+        """Testa múltiplos uploads (10 fotos no mesmo evento)"""
+        for i in range(10):
+            FotoEvento.objects.create(
+                evento=self.evento,
+                imagem=self._criar_arquivo_imagem(nome=f"foto_{i}.jpg"),
+                descricao=f"Foto número {i}"
+            )
+        
+        fotos = FotoEvento.objects.filter(evento=self.evento)
+        assert fotos.count() == 10
+
+
+class TestFotoPostagem(TestCase):
+    """Testes para upload de fotos em postagens"""
+    
+    def setUp(self):
+        """Configuração inicial"""
+        self.usuario = Usuario.objects.create(
+            username="author",
+            email="author@test.com",
+            senha="u123"
+        )
+        
+        self.postagem = Postagem.objects.create(
+            titulo="Postagem Teste",
+            conteudo="Conteúdo da postagem",
+            autor=self.usuario
+        )
+    
+    def _criar_arquivo_imagem(self, nome="test.jpg"):
+        """Helper para criar arquivo de imagem"""
+        imagem = Image.new('RGB', (100, 100), color='green')
+        arquivo_io = BytesIO()
+        imagem.save(arquivo_io, format='JPEG')
+        arquivo_io.seek(0)
+        return SimpleUploadedFile(
+            nome,
+            arquivo_io.getvalue(),
+            content_type='image/jpeg'
+        )
+    
+    def test_foto_postagem_creation(self):
+        """Testa criação de foto em postagem"""
+        foto = FotoPostagem.objects.create(
+            postagem=self.postagem,
+            imagem=self._criar_arquivo_imagem()
+        )
+        
+        assert foto.postagem == self.postagem
+        assert foto.imagem.name is not None
+    
+    def test_multiplas_fotos_postagem(self):
+        """Testa múltiplas fotos em uma postagem"""
+        FotoPostagem.objects.create(
+            postagem=self.postagem,
+            imagem=self._criar_arquivo_imagem(nome="foto1.jpg")
+        )
+        
+        FotoPostagem.objects.create(
+            postagem=self.postagem,
+            imagem=self._criar_arquivo_imagem(nome="foto2.jpg")
+        )
+        
+        fotos = FotoPostagem.objects.filter(postagem=self.postagem)
+        assert fotos.count() == 2
+    
+    def test_foto_postagem_com_descricao(self):
+        """Testa foto de postagem com descrição"""
+        descricao = "Foto principal da postagem"
+        foto = FotoPostagem.objects.create(
+            postagem=self.postagem,
+            imagem=self._criar_arquivo_imagem(),
+            descricao=descricao
+        )
+        
+        assert foto.descricao == descricao
+    
+    def test_foto_postagem_timestamp(self):
+        """Testa timestamp de upload de foto em postagem"""
+        foto = FotoPostagem.objects.create(
+            postagem=self.postagem,
+            imagem=self._criar_arquivo_imagem()
+        )
+        
+        assert foto.data_upload is not None or foto.created_at is not None
 
 
 # Função para executar testes manualmente (sem pytest)
