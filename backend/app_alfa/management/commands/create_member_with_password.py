@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from app_Alfa.models import Membro, Cargo, Admin
+from app_alfa.models import Membro, Cargo, Admin
 
 class Command(BaseCommand):
     help = 'Cria um membro com senha para teste'

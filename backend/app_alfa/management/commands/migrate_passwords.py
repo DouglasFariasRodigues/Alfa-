@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.hashers import make_password
-from app_Alfa.models import Admin, Usuario, Membro
+from app_alfa.models import Admin, Usuario, Membro
 
 class Command(BaseCommand):
     help = 'Migra senhas existentes para hash seguro'

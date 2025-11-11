@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from app_Alfa.models import Admin, Cargo, Membro, Evento, Transacao, Usuario
+from app_alfa.models import Admin, Cargo, Membro, Evento, Transacao, Usuario
 from datetime import date, datetime, timedelta
 
 class Command(BaseCommand):
