@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useCargo } from '@/hooks/useCargos'
+import { usePermissions } from '@/hooks/usePermissions'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function DetalhesCargo() {
@@ -12,6 +13,10 @@ export default function DetalhesCargo() {
   const navigate = useNavigate()
   
   const { data: cargo, isLoading, error } = useCargo(Number(id))
+  const { canManage } = usePermissions()
+  
+  // Verificar se o usuário pode gerenciar cargos (criar, editar, deletar)
+  const canManageCargos = canManage('cargos')
 
   if (isLoading) {
     return (
@@ -157,10 +162,12 @@ export default function DetalhesCargo() {
             </p>
           </div>
         </div>
-        <Button onClick={() => navigate(`/cargos/editar/${cargo.id}`)}>
-          <Edit className="h-4 w-4 mr-2" />
-          Editar Cargo
-        </Button>
+        {canManageCargos && (
+          <Button onClick={() => navigate(`/cargos/editar/${cargo.id}`)}>
+            <Edit className="h-4 w-4 mr-2" />
+            Editar Cargo
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

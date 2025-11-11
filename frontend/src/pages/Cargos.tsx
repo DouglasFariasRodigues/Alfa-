@@ -19,10 +19,10 @@ export default function Cargos() {
   const [selectedCargo, setSelectedCargo] = useState<Cargo | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [filters, setFilters] = useState<CargoFilters>({})
-  const { hasPermission, canAccess, isAdmin } = usePermissions()
+  const { canManage } = usePermissions()
   
-  // Verificar se o usuário pode gerenciar cargos
-  const canManageCargos = hasPermission('cargos') || canAccess('cargos') || isAdmin()
+  // Verificar se o usuário pode gerenciar cargos (criar, editar, deletar)
+  const canManageCargos = canManage('cargos')
 
   const { data: cargos = [], isLoading, error } = useCargos(filters)
   const deleteCargoMutation = useDeleteCargo()

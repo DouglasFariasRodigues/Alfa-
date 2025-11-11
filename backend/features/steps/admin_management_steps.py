@@ -3,7 +3,7 @@ Steps para gerenciamento do Admin.
 Testa acesso do Admin às áreas de publicações e ofertas, e registro de ofertas com transparência.
 """
 from behave import given, when, then
-from app_Alfa.models import Admin, Oferta, DistribuicaoOferta, ONG
+from app_alfa.models import Admin, Oferta, DistribuicaoOferta, ONG
 from decimal import Decimal
 from rest_framework.test import APIClient
 from rest_framework import status

@@ -3,7 +3,7 @@ Steps para publicação de fotos de eventos pelo Admin.
 Testa se Admin consegue publicar artes e fotos de eventos/cultos/missas.
 """
 from behave import given, when, then
-from app_Alfa.models import Admin, Usuario, Evento, FotoEvento, Postagem, FotoPostagem
+from app_alfa.models import Admin, Usuario, Evento, FotoEvento, Postagem, FotoPostagem
 from django.utils import timezone
 
 # Criar Admin como usuário do sistema

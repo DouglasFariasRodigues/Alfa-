@@ -83,10 +83,10 @@ export default function Documentos() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("Todos");
-  const { hasPermission, canAccess, isAdmin } = usePermissions();
+  const { canManage } = usePermissions();
   
-  // Verificar se o usuário pode gerenciar documentos
-  const canManageDocuments = hasPermission('documentos') || canAccess('documentos') || isAdmin();
+  // Verificar se o usuário pode gerenciar documentos (criar, editar, deletar)
+  const canManageDocuments = canManage('documentos');
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [filtroStatus, setFiltroStatus] = useState("Todos");
   const [loading, setLoading] = useState(false);

@@ -16,6 +16,7 @@ export interface UserPermissions {
     pode_gerenciar_cargos: boolean;
     pode_gerenciar_documentos: boolean;
     pode_visualizar_relatorios: boolean;
+    pode_fazer_postagens?: boolean;
   };
   is_admin: boolean;
   user_type: 'admin' | 'membro';
@@ -58,6 +59,8 @@ export const usePermissions = () => {
         return user.cargo.pode_gerenciar_documentos;
       case 'relatorios':
         return user.cargo.pode_visualizar_relatorios;
+      case 'postagens':
+        return user.cargo.pode_fazer_postagens || false;
       default:
         return false;
     }
@@ -69,22 +72,41 @@ export const usePermissions = () => {
     // Admin pode acessar tudo
     if (user.is_admin) return true;
     
-    // Para membros, verificar se podem visualizar (não gerenciar)
+    // Todos podem visualizar todas as páginas
+    // A diferença está em canManage (pode gerenciar vs apenas visualizar)
+    return true;
+  };
+
+  // Função para verificar se pode gerenciar (criar, editar, deletar)
+  const canManage = (module: string): boolean => {
+    if (!user) return false;
+    
+    // Admin pode gerenciar tudo
+    if (user.is_admin) return true;
+    
+    // Se não tem cargo, não pode gerenciar
+    if (!user.cargo) return false;
+    
+    // Verificar permissão específica de gerenciamento
     switch (module) {
-      case 'dashboard':
-        return false; // Membros não veem dashboard
       case 'membros':
-        return user.cargo?.pode_gerenciar_membros || false;
+        return user.cargo.pode_gerenciar_membros;
       case 'eventos':
-        return true; // Todos os membros podem acessar eventos (mas com interfaces diferentes)
+        return user.cargo.pode_gerenciar_eventos;
       case 'financas':
-        return true; // Todos os membros podem visualizar finanças
+        return user.cargo.pode_gerenciar_financas;
       case 'cargos':
-        return user.cargo?.pode_gerenciar_cargos || false;
+        return user.cargo.pode_gerenciar_cargos;
       case 'documentos':
-        return user.cargo?.pode_gerenciar_documentos || false;
+        return user.cargo.pode_gerenciar_documentos;
+      case 'postagens':
+        return user.cargo.pode_fazer_postagens || false;
+      case 'dizimos':
+        return user.cargo.pode_registrar_dizimos;
+      case 'ofertas':
+        return user.cargo.pode_registrar_ofertas;
       case 'relatorios':
-        return user.cargo?.pode_visualizar_relatorios || false;
+        return user.cargo.pode_visualizar_relatorios;
       default:
         return false;
     }
@@ -111,6 +133,7 @@ export const usePermissions = () => {
     error,
     hasPermission,
     canAccess,
+    canManage,
     isAdmin,
     isMember,
     getUserRole

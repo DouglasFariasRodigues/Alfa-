@@ -3,7 +3,7 @@ Steps de teste para login do Admin.
 Testa se o Admin consegue fazer login com credenciais corretas ou incorretas.
 """
 from behave import given, when, then
-from app_Alfa.models import Admin
+from app_alfa.models import Admin
 
 # Passo: Criar um Admin no banco de dados para testar
 @given('que existe um Admin com email "{email}" e senha "{senha}"')

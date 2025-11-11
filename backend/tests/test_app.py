@@ -11,7 +11,7 @@ from datetime import date
 from io import BytesIO
 from PIL import Image
 
-from app_Alfa.models import (
+from app_alfa.models import (
     Admin, Usuario, Membro, Grupo, Doacao, Igreja, 
     Evento, Postagem, FotoEvento, FotoPostagem, 
     Cargo, ONG, Oferta, DistribuicaoOferta, DocumentoMembro, Transacao
@@ -2535,7 +2535,7 @@ class TestRelatorioBase(TestCase):
     
     def test_relatorio_init_default(self):
         """Testa inicialização com datas padrão"""
-        from app_Alfa.reports import RelatorioBase
+        from app_alfa.reports import RelatorioBase
         
         relatorio = RelatorioBase()
         
@@ -2545,7 +2545,7 @@ class TestRelatorioBase(TestCase):
     
     def test_relatorio_init_custom_dates(self):
         """Testa inicialização com datas customizadas"""
-        from app_Alfa.reports import RelatorioBase
+        from app_alfa.reports import RelatorioBase
         
         inicio = timezone.now().date()
         fim = timezone.now().date()
@@ -2557,7 +2557,7 @@ class TestRelatorioBase(TestCase):
     
     def test_relatorio_context_data(self):
         """Testa geração de contexto comum"""
-        from app_Alfa.reports import RelatorioBase
+        from app_alfa.reports import RelatorioBase
         
         relatorio = RelatorioBase()
         context = relatorio.get_context_data()
@@ -2588,14 +2588,14 @@ class TestRelatorioMembros(TestCase):
     
     def test_relatorio_membros_creation(self):
         """Testa criação de relatório de membros"""
-        from app_Alfa.reports import RelatorioMembros
+        from app_alfa.reports import RelatorioMembros
         
         relatorio = RelatorioMembros()
         assert relatorio is not None
     
     def test_relatorio_membros_pdf_generation(self):
         """Testa geração de PDF de membros"""
-        from app_Alfa.reports import RelatorioMembros
+        from app_alfa.reports import RelatorioMembros
         
         relatorio = RelatorioMembros()
         try:
@@ -2609,7 +2609,7 @@ class TestRelatorioMembros(TestCase):
     
     def test_relatorio_membros_date_range(self):
         """Testa relatório com range de datas"""
-        from app_Alfa.reports import RelatorioMembros
+        from app_alfa.reports import RelatorioMembros
         
         inicio = timezone.now().date() - timezone.timedelta(days=30)
         fim = timezone.now().date()
@@ -2652,14 +2652,14 @@ class TestRelatorioFinanceiro(TestCase):
     
     def test_relatorio_financeiro_creation(self):
         """Testa criação de relatório financeiro"""
-        from app_Alfa.reports import RelatorioFinanceiro
+        from app_alfa.reports import RelatorioFinanceiro
         
         relatorio = RelatorioFinanceiro()
         assert relatorio is not None
     
     def test_relatorio_financeiro_pdf_generation(self):
         """Testa geração de PDF financeiro"""
-        from app_Alfa.reports import RelatorioFinanceiro
+        from app_alfa.reports import RelatorioFinanceiro
         
         relatorio = RelatorioFinanceiro()
         try:
@@ -2673,7 +2673,7 @@ class TestRelatorioFinanceiro(TestCase):
     
     def test_relatorio_financeiro_inclui_transacoes(self):
         """Testa se relatório inclui transações"""
-        from app_Alfa.reports import RelatorioFinanceiro
+        from app_alfa.reports import RelatorioFinanceiro
         
         relatorio = RelatorioFinanceiro()
         assert relatorio is not None
@@ -2709,14 +2709,14 @@ class TestRelatorioEventos(TestCase):
     
     def test_relatorio_eventos_creation(self):
         """Testa criação de relatório de eventos"""
-        from app_Alfa.reports import RelatorioEventos
+        from app_alfa.reports import RelatorioEventos
         
         relatorio = RelatorioEventos()
         assert relatorio is not None
     
     def test_relatorio_eventos_pdf_generation(self):
         """Testa geração de PDF de eventos"""
-        from app_Alfa.reports import RelatorioEventos
+        from app_alfa.reports import RelatorioEventos
         
         relatorio = RelatorioEventos()
         try:
@@ -2730,7 +2730,7 @@ class TestRelatorioEventos(TestCase):
     
     def test_relatorio_eventos_inclui_eventos(self):
         """Testa se relatório inclui eventos"""
-        from app_Alfa.reports import RelatorioEventos
+        from app_alfa.reports import RelatorioEventos
         
         relatorio = RelatorioEventos()
         assert relatorio is not None
@@ -2854,7 +2854,7 @@ class TestRelatorioValidacoes(TestCase):
     
     def test_relatorio_data_inicio_maior_que_fim(self):
         """Testa que data de início não pode ser maior que fim"""
-        from app_Alfa.reports import RelatorioBase
+        from app_alfa.reports import RelatorioBase
         
         inicio = timezone.now() + timezone.timedelta(days=10)
         fim = timezone.now()
@@ -2866,7 +2866,7 @@ class TestRelatorioValidacoes(TestCase):
     
     def test_relatorio_sem_dados(self):
         """Testa relatório quando não há dados"""
-        from app_Alfa.reports import RelatorioMembros
+        from app_alfa.reports import RelatorioMembros
         
         # Criar relatório com período futuro (sem dados)
         inicio = timezone.now() + timezone.timedelta(days=30)
@@ -2886,7 +2886,7 @@ class TestRelatorioValidacoes(TestCase):
                 cadastrado_por=self.admin
             )
         
-        from app_Alfa.reports import RelatorioMembros
+        from app_alfa.reports import RelatorioMembros
         
         relatorio = RelatorioMembros()
         assert relatorio is not None
@@ -2909,7 +2909,7 @@ class TestRelatorioValidacoes(TestCase):
                 registrado_por=self.admin
             )
         
-        from app_Alfa.reports import RelatorioFinanceiro
+        from app_alfa.reports import RelatorioFinanceiro
         
         relatorio = RelatorioFinanceiro()
         assert relatorio is not None
@@ -2938,7 +2938,7 @@ class TestRelatorioValidacoes(TestCase):
             organizador=self.usuario
         )
         
-        from app_Alfa.reports import RelatorioEventos
+        from app_alfa.reports import RelatorioEventos
         
         relatorio = RelatorioEventos()
         assert relatorio is not None
@@ -3108,7 +3108,7 @@ class TestRelatorioPerformance(TestCase):
                 cadastrado_por=self.admin
             )
         
-        from app_Alfa.reports import RelatorioMembros
+        from app_alfa.reports import RelatorioMembros
         
         relatorio = RelatorioMembros()
         
@@ -3129,7 +3129,7 @@ class TestRelatorioPerformance(TestCase):
                 registrado_por=self.admin
             )
         
-        from app_Alfa.reports import RelatorioFinanceiro
+        from app_alfa.reports import RelatorioFinanceiro
         
         relatorio = RelatorioFinanceiro()
         
@@ -3149,7 +3149,7 @@ class TestRelatorioPerformance(TestCase):
                 organizador=self.usuario
             )
         
-        from app_Alfa.reports import RelatorioEventos
+        from app_alfa.reports import RelatorioEventos
         
         relatorio = RelatorioEventos()
         

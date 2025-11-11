@@ -33,6 +33,11 @@ import FinancasVisualizacao from "./pages/FinancasVisualizacao";
 // Páginas específicas para membros
 import EventosMembro from "./pages/EventosMembro";
 import DetalhesEventoMembro from "./pages/DetalhesEventoMembro";
+// Páginas de Postagens
+import Postagens from "./pages/Postagens";
+import NovaPostagem from "./pages/NovaPostagem";
+import DetalhesPostagem from "./pages/DetalhesPostagem";
+import EditarPostagem from "./pages/EditarPostagem";
 
 const queryClient = new QueryClient();
 
@@ -181,6 +186,28 @@ const App = () => (
           <Route path="/eventos/:id/membro" element={
             <ProtectedRoute>
               <AppLayout><DetalhesEventoMembro /></AppLayout>
+            </ProtectedRoute>
+          } />
+          
+          {/* Rotas de Postagens */}
+          <Route path="/postagens" element={
+            <ProtectedRoute>
+              <AppLayout><Postagens /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/postagens/novo" element={
+            <ProtectedRoute>
+              <AppLayout><NovaPostagem /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/postagens/:id" element={
+            <ProtectedRoute>
+              <AppLayout><DetalhesPostagem /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/postagens/:id/editar" element={
+            <ProtectedRoute>
+              <AppLayout><EditarPostagem /></AppLayout>
             </ProtectedRoute>
           } />
           

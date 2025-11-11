@@ -3,7 +3,7 @@ Steps de teste para permissões de Usuario.
 Testa se o Usuario com cargo limitado é bloqueado ao tentar executar ações não autorizadas.
 """
 from behave import given, when, then
-from app_Alfa.models import Usuario, Cargo
+from app_alfa.models import Usuario, Cargo
 from rest_framework.test import APIClient
 from rest_framework import status
 

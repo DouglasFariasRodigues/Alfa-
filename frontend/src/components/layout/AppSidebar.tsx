@@ -5,7 +5,8 @@ import {
   DollarSign, 
   FileText, 
   Settings,
-  Shield
+  Shield,
+  Newspaper
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -29,6 +30,7 @@ const mainItems = [
   { title: "Minha Área", url: "/member-dashboard", icon: Home, permission: null }, // Para membros
   { title: "Membros", url: "/membros", icon: Users, permission: "membros" },
   { title: "Eventos", url: "/eventos", icon: Calendar, permission: "eventos" }, // Único item de eventos
+  { title: "Postagens", url: "/postagens", icon: Newspaper, permission: "postagens" },
   { title: "Finanças", url: "/financas", icon: DollarSign, permission: "financas" },
 ];
 
@@ -58,16 +60,8 @@ export function AppSidebar() {
       : `${baseClass} hover:bg-accent hover:text-accent-foreground`;
   };
 
-  // Função para obter a URL correta de eventos baseada nas permissões
-  const getEventosUrl = () => {
-    if (isAdmin() || hasPermission('eventos')) {
-      return '/eventos'; // Interface administrativa
-    }
-    return '/eventos-membro'; // Interface de membro
-  };
-
-
-  // Filtrar itens baseado em permissões
+  // Mostrar todos os itens para todos os usuários
+  // O comportamento (gerenciar vs visualizar) será controlado dentro de cada página
   const filteredMainItems = mainItems.filter(item => {
     // Dashboard sempre visível para admins
     if (item.url === '/dashboard') {
@@ -77,17 +71,13 @@ export function AppSidebar() {
     if (item.url === '/member-dashboard') {
       return isMember();
     }
-    // Para outros itens, verificar permissões
-    return !item.permission || canAccess(item.permission) || isAdmin();
+    // Todos os outros itens são visíveis para todos
+    return true;
   });
 
   const filteredOtherItems = otherItems.filter(item => {
-    // Relatórios sempre visível para admins
-    if (item.url === '/relatorios') {
-      return isAdmin();
-    }
-    // Para outros itens, verificar permissões
-    return !item.permission || canAccess(item.permission) || isAdmin();
+    // Todos os itens são visíveis para todos
+    return true;
   });
 
   return (
@@ -117,8 +107,8 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink 
-                      to={item.url === '/eventos' ? getEventosUrl() : item.url} 
-                      className={getNavClass(item.url === '/eventos' ? getEventosUrl() : item.url)}
+                      to={item.url} 
+                      className={getNavClass(item.url)}
                     >
                       <item.icon className="h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}

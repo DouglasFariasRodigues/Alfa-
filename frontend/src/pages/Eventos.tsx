@@ -19,13 +19,13 @@ export default function Eventos() {
   
   const deleteEventoMutation = useDeleteEvento();
   const confirmPresenceMutation = useConfirmPresence();
-  const { hasPermission, canAccess, user } = usePermissions();
+  const { canManage, user } = usePermissions();
   
   // Buscar confirmações de presença do membro
   const { data: presencas = [] } = useEventPresences(user?.id);
   
-  // Verificar se o usuário pode gerenciar eventos
-  const canManageEvents = hasPermission('eventos') || canAccess('eventos');
+  // Verificar se o usuário pode gerenciar eventos (criar, editar, deletar)
+  const canManageEvents = canManage('eventos');
 
   // Função para verificar se o membro já confirmou presença em um evento
   const isPresenceConfirmed = (eventoId: number) => {

@@ -18,10 +18,15 @@ import { toast } from "sonner";
 export default function Financas() {
   // Buscar transações da API
   const { data: transacoes = [], isLoading, error } = useTransacoes();
-  const { hasPermission, canAccess, isAdmin } = usePermissions();
+  const { canManage } = usePermissions();
   
-  // Verificar se o usuário pode gerenciar finanças
-  const canManageFinances = hasPermission('financas') || canAccess('financas') || isAdmin();
+  // Verificar se o usuário pode gerenciar finanças (criar, editar, deletar)
+  const canManageFinances = canManage('financas');
+
+  const handleDoacao = (amount: number, method: string) => {
+    toast.success(`Doação de R$ ${amount.toFixed(2)} via ${method.toUpperCase()} registrada!`);
+    console.log('Doação realizada!', { amount, method });
+  };
 
   const handleGerarRelatorio = async () => {
     try {
@@ -111,27 +116,45 @@ export default function Financas() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Finanças</h1>
           <p className="text-muted-foreground">
-            Controle financeiro completo da sua igreja
+            {canManageFinances 
+              ? "Controle financeiro completo da sua igreja"
+              : "Visualize as finanças e faça sua contribuição"
+            }
           </p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            onClick={handleGerarRelatorio}
-            variant="outline"
-            className="border-blue-200 text-blue-600 hover:bg-blue-50"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Relatório
-          </Button>
-        {canManageFinances && (
-          <Button 
-            onClick={() => window.location.href = '/financas/nova-transacao'}
-            className="gradient-primary text-white shadow-elegant hover:opacity-90"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Nova Transação
-          </Button>
-        )}
+          {canManageFinances && (
+            <>
+              <Button 
+                onClick={handleGerarRelatorio}
+                variant="outline"
+                className="border-blue-200 text-blue-600 hover:bg-blue-50"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Relatório
+              </Button>
+              <Button 
+                onClick={() => window.location.href = '/financas/nova-transacao'}
+                className="gradient-primary text-white shadow-elegant hover:opacity-90"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Transação
+              </Button>
+            </>
+          )}
+          {!canManageFinances && (
+            <Button 
+              onClick={() => {
+                // Scroll para a seção de doação
+                const doacaoSection = document.getElementById('secao-doacao');
+                doacaoSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              className="gradient-primary text-white shadow-elegant hover:opacity-90"
+            >
+              <Heart className="mr-2 h-4 w-4" />
+              Fazer Doação
+            </Button>
+          )}
         </div>
       </div>
 
@@ -346,53 +369,62 @@ export default function Financas() {
       </Card>
 
       {/* Seção de Doação para Membros */}
-      {!canManageFinances && (
-        <div className="grid gap-6 md:grid-cols-2">
-          <QRCodeDonation 
-            onDonate={() => {
-              // TODO: Implementar lógica de doação
-              console.log('Doação realizada!');
-            }}
-          />
-          
-          <Card className="shadow-card">
+      {!canManageFinances ? (
+        <div id="secao-doacao" className="space-y-6">
+          <Card className="shadow-card border-2 border-primary/20">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-red-500" />
-                Suas Doações
+              <CardTitle className="flex items-center gap-2 text-2xl">
+                <Heart className="h-6 w-6 text-red-500" />
+                Faça sua Doação
               </CardTitle>
-              <CardDescription>
-                Histórico das suas contribuições
+              <CardDescription className="text-base">
+                Sua contribuição é muito importante para nossa comunidade. Escolha o valor e método de pagamento.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-green-800">Oferta Especial</p>
-                    <p className="text-sm text-green-600">15/10/2024</p>
-                  </div>
-                  <Badge className="bg-green-100 text-green-800">R$ 50,00</Badge>
-                </div>
-                
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-blue-800">Dízimo</p>
-                    <p className="text-sm text-blue-600">01/10/2024</p>
-                  </div>
-                  <Badge className="bg-blue-100 text-blue-800">R$ 200,00</Badge>
-                </div>
-                
-                <div className="text-center py-4">
-                  <p className="text-sm text-muted-foreground">
-                    Total doado este mês: <span className="font-semibold text-green-600">R$ 250,00</span>
-                  </p>
-                </div>
-              </div>
-            </CardContent>
           </Card>
+          
+          <div className="grid gap-6 md:grid-cols-2">
+            <QRCodeDonation onDonate={handleDoacao} />
+          
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-red-500" />
+                  Suas Doações
+                </CardTitle>
+                <CardDescription>
+                  Histórico das suas contribuições
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-green-800">Oferta Especial</p>
+                      <p className="text-sm text-green-600">15/10/2024</p>
+                    </div>
+                    <Badge className="bg-green-100 text-green-800">R$ 50,00</Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-blue-800">Dízimo</p>
+                      <p className="text-sm text-blue-600">01/10/2024</p>
+                    </div>
+                    <Badge className="bg-blue-100 text-blue-800">R$ 200,00</Badge>
+                  </div>
+                  
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">
+                      Total doado este mês: <span className="font-semibold text-green-600">R$ 250,00</span>
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

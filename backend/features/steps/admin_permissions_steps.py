@@ -3,7 +3,7 @@ Steps de teste para permissões de Admin.
 Testa se o Admin sem permissão é bloqueado ao tentar executar ações.
 """
 from behave import given, when, then
-from app_Alfa.models import Admin, Cargo, Transacao
+from app_alfa.models import Admin, Cargo, Transacao
 from rest_framework.test import APIClient
 from rest_framework import status
 from decimal import Decimal

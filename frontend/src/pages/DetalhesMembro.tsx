@@ -14,10 +14,10 @@ export default function DetalhesMembro() {
   const navigate = useNavigate()
   
   const { data: membro, isLoading, error } = useMembro(Number(id))
-  const { hasPermission, canAccess, isAdmin, user } = usePermissions()
+  const { canManage, user } = usePermissions()
   
-  // Verificar se o usuário pode gerenciar membros
-  const canManageMembers = hasPermission('membros') || canAccess('membros') || isAdmin()
+  // Verificar se o usuário pode gerenciar membros (criar, editar, deletar)
+  const canManageMembers = canManage('membros')
 
   if (isLoading) {
     return (

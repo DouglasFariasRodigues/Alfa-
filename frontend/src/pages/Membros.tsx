@@ -34,10 +34,10 @@ export default function Membros() {
   });
   
   const deleteMembroMutation = useDeleteMembro();
-  const { hasPermission, canAccess, isAdmin, isMember } = usePermissions();
+  const { canManage } = usePermissions();
   
-  // Verificar se o usuário pode gerenciar membros
-  const canManageMembers = hasPermission('membros') || canAccess('membros') || isAdmin();
+  // Verificar se o usuário pode gerenciar membros (criar, editar, deletar)
+  const canManageMembers = canManage('membros');
 
   const handleDeleteMembro = async (id: number) => {
     if (window.confirm('Tem certeza que deseja desativar este membro?')) {

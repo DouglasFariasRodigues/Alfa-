@@ -16,11 +16,11 @@ export default function DetalhesEvento() {
   const navigate = useNavigate()
   
   const { data: evento, isLoading, error } = useEvento(Number(id))
-  const { hasPermission, canAccess, user } = usePermissions()
+  const { canManage, user } = usePermissions()
   const confirmPresenceMutation = useConfirmPresence()
   
-  // Verificar se o usuário pode gerenciar eventos
-  const canManageEvents = hasPermission('eventos') || canAccess('eventos')
+  // Verificar se o usuário pode gerenciar eventos (criar, editar, deletar)
+  const canManageEvents = canManage('eventos')
 
   // Buscar confirmações de presença do membro
   const { data: presencas = [] } = useEventPresences(user?.id);
