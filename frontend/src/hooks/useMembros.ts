@@ -2,11 +2,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient, Membro, MembroCreate } from '@/lib/api';
 
 // Hook para buscar membros
-export const useMembros = (params?: { status?: string; search?: string }) => {
+export const useMembros = (
+  params?: { status?: string; search?: string },
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: ['membros', params],
     queryFn: () => apiClient.getMembros(params),
     staleTime: 5 * 60 * 1000, // 5 minutos
+    enabled: options?.enabled !== false, // Por padrão, habilitado
   });
 };
 
@@ -57,5 +61,14 @@ export const useDeleteMembro = () => {
       // Invalidar a lista de membros
       queryClient.invalidateQueries({ queryKey: ['membros'] });
     },
+  });
+};
+
+// Hook para buscar estatísticas de membros
+export const useMembrosEstatisticas = () => {
+  return useQuery({
+    queryKey: ['membros', 'estatisticas'],
+    queryFn: () => apiClient.getMembrosEstatisticas(),
+    staleTime: 5 * 60 * 1000, // 5 minutos
   });
 };

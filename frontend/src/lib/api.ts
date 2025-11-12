@@ -264,6 +264,24 @@ class ApiClient {
     return this.request<Membro[]>(endpoint);
   }
 
+  async getMembrosEstatisticas(): Promise<{
+    total: number;
+    ativos: number;
+    inativos: number;
+    falecidos: number;
+    afastados: number;
+    novos_este_mes: number;
+  }> {
+    return this.request<{
+      total: number;
+      ativos: number;
+      inativos: number;
+      falecidos: number;
+      afastados: number;
+      novos_este_mes: number;
+    }>('/membros/estatisticas/');
+  }
+
   async getMembro(id: number): Promise<Membro> {
     return this.request<Membro>(`/membros/${id}/`);
   }
@@ -516,6 +534,32 @@ class ApiClient {
     return this.request<any>(`/eventos-comentarios/${commentId}/`, {
       method: 'DELETE',
     });
+  }
+
+  // Métodos para documentos
+  async getDocumentos(): Promise<any[]> {
+    return this.request<any[]>('/documentos-membros/');
+  }
+
+  async getDocumento(id: number): Promise<any> {
+    return this.request<any>(`/documentos-membros/${id}/`);
+  }
+
+  async downloadDocumento(id: number): Promise<Blob> {
+    const url = `${this.baseURL}/documentos-membros/${id}/download/`;
+    const token = TokenManager.getAccessToken();
+
+    const response = await fetch(url, {
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.blob();
   }
 }
 

@@ -45,7 +45,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const currentPath = location.pathname;
-  const { canAccess, isAdmin, isMember, hasPermission, user } = usePermissions();
+  const { canAccess, isAdmin, isMember, hasPermission, user, canManage } = usePermissions();
 
 
   const isActive = (path: string) => {
@@ -76,7 +76,15 @@ export function AppSidebar() {
   });
 
   const filteredOtherItems = otherItems.filter(item => {
-    // Todos os itens são visíveis para todos
+    // Cargos só visível para quem tem permissão de gerenciar cargos
+    if (item.url === '/cargos') {
+      return canManage('cargos');
+    }
+    // Configurações sempre visível
+    if (item.url === '/configuracoes') {
+      return true;
+    }
+    // Todos os outros itens são visíveis para todos
     return true;
   });
 

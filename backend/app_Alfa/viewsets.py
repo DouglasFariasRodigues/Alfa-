@@ -303,6 +303,12 @@ class MembroViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         queryset = Membro.objects.all()
+        
+        # Se não tiver permissão de gerenciar membros, retornar queryset vazio
+        # (detalhes só para quem tem permissão)
+        if not self.has_permission_to_view_details():
+            return Membro.objects.none()
+        
         status_filter = self.request.query_params.get('status')
         search = self.request.query_params.get('search')
         
@@ -317,6 +323,55 @@ class MembroViewSet(viewsets.ModelViewSet):
             )
         
         return queryset
+    
+    def has_permission_to_view_details(self):
+        """Verifica se o usuário tem permissão para ver detalhes dos membros"""
+        if not self.request.user or not self.request.user.is_authenticated:
+            return False
+        
+        # Admin sempre pode ver
+        try:
+            admin = Admin.objects.get(email=self.request.user.username)
+            return True
+        except Admin.DoesNotExist:
+            pass
+        
+        # Usuário com permissão pode ver
+        try:
+            usuario = Usuario.objects.get(email=self.request.user.username)
+            if usuario.cargo and usuario.cargo.pode_gerenciar_membros:
+                return True
+        except Usuario.DoesNotExist:
+            pass
+        
+        # Membros não podem ver detalhes de outros membros
+        return False
+    
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def estatisticas(self, request):
+        """Retorna apenas estatísticas de membros (sem detalhes)"""
+        total = Membro.objects.count()
+        ativos = Membro.objects.filter(status='ativo').count()
+        inativos = Membro.objects.filter(status='inativo').count()
+        falecidos = Membro.objects.filter(status='falecido').count()
+        afastados = Membro.objects.filter(status='afastado').count()
+        
+        # Membros cadastrados este mês
+        current_month = timezone.now().month
+        current_year = timezone.now().year
+        novos_este_mes = Membro.objects.filter(
+            created_at__month=current_month,
+            created_at__year=current_year
+        ).count()
+        
+        return Response({
+            'total': total,
+            'ativos': ativos,
+            'inativos': inativos,
+            'falecidos': falecidos,
+            'afastados': afastados,
+            'novos_este_mes': novos_este_mes
+        })
     
     def perform_create(self, serializer):
         # Buscar admin para associar ao membro
@@ -547,6 +602,32 @@ class DocumentoMembroViewSet(viewsets.ModelViewSet):
     queryset = DocumentoMembro.objects.all()
     serializer_class = DocumentoMembroSerializer
     permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        queryset = DocumentoMembro.objects.all()
+        
+        # Se for admin ou usuário com permissão de gerenciar documentos, ver todos
+        # Caso contrário, ver apenas os próprios documentos
+        try:
+            admin = Admin.objects.get(email=self.request.user.username)
+            # Admin vê todos os documentos
+            return queryset
+        except Admin.DoesNotExist:
+            try:
+                usuario = Usuario.objects.get(email=self.request.user.username)
+                # Usuário com permissão de gerenciar documentos vê todos
+                if usuario.cargo and usuario.cargo.pode_gerenciar_documentos:
+                    return queryset
+            except Usuario.DoesNotExist:
+                pass
+        
+        # Se for membro, ver apenas seus próprios documentos
+        try:
+            membro = Membro.objects.get(email=self.request.user.username)
+            return queryset.filter(membro=membro)
+        except Membro.DoesNotExist:
+            # Se não encontrou membro, retornar queryset vazio
+            return DocumentoMembro.objects.none()
 
 class EventoPresencaViewSet(viewsets.ModelViewSet):
     queryset = EventoPresenca.objects.all()
