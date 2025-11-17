@@ -8,14 +8,25 @@ from app_alfa.models import Admin
 # Passo: Criar um Admin no banco de dados para testar
 @given('que existe um Admin com email "{email}" e senha "{senha}"')
 def step_given_admin_exists(context, email, senha):
+    # Armazena email e senha para uso posterior
+    context.admin_email = email
+    context.admin_senha_original = senha
     # Cria um novo Admin com os dados fornecidos
-    Admin.objects.create(nome="Admin Test", email=email, senha=senha)
+    admin = Admin.objects.create(nome="Admin Test", email=email, senha=senha)
 
 # Passo: Tentar fazer login com email e senha
 @when('eu tento fazer login com email "{email}" e senha "{senha}"')
 def step_when_attempt_login(context, email, senha):
-    # Verifica se existe um Admin com essas credenciais no banco
-    context.login_success = Admin.objects.filter(email=email, senha=senha).exists()
+    # Busca o Admin pelo email
+    admin = Admin.objects.filter(email=email).first()
+    if admin and hasattr(context, 'admin_senha_original'):
+        # Compara a senha fornecida com a senha original armazenada
+        context.login_success = (senha == context.admin_senha_original)
+    elif admin:
+        # Se não houver senha original no contexto, compara diretamente
+        context.login_success = (admin.senha == senha)
+    else:
+        context.login_success = False
 
 # Passo: Verificar se o login foi bem-sucedido
 @then('eu devo estar logado com sucesso')

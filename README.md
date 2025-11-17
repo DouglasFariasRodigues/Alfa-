@@ -380,6 +380,70 @@ pytest tests/unit/test_models.py::TestAdminModel::test_admin_creation -v
 pytest tests/ --cov=app_alfa --cov-report=html
 ```
 
+### Backend (BDD/Behave)
+
+Testes BDD organizados em **Integration** e **E2E** com Gherkin (linguagem português).
+
+#### Rodar Todos os Testes BDD
+```bash
+cd backend/bdd
+behave
+```
+
+#### Rodar por Nível
+```bash
+# Testes de integração (com banco)
+behave integration/
+
+# Testes End-to-End (fluxos completos)
+behave e2e/
+```
+
+#### Rodar por Domínio
+```bash
+# Autenticação e JWT
+behave integration/auth/
+
+# Gerenciamento de membros
+behave integration/members/
+
+# Finanças (ofertas e doações)
+behave integration/finance/
+
+# Eventos e fotos
+behave integration/events/
+
+# Visualização de conteúdo
+behave integration/content/
+
+# Fluxos completos de usuário
+behave e2e/flows/
+```
+
+#### Rodar com Verbosidade
+```bash
+behave -v              # Verbose
+behave --no-capture    # Sem captura de output
+behave --format plain  # Formato texto
+```
+
+#### Estrutura dos Testes BDD
+```
+backend/bdd/
+├── integration/        # Testes com banco de dados
+│   ├── auth/          # Login, JWT, autenticação
+│   ├── members/       # Registro e gerenciamento de membros
+│   ├── finance/       # Ofertas e doações
+│   ├── events/        # Eventos e fotos
+│   └── content/       # Visualização de conteúdo
+├── e2e/               # Testes End-to-End
+│   ├── auth/          # Permissões de usuários
+│   └── flows/         # Fluxos completos de negócio
+└── steps/             # Steps consolidados por domínio
+```
+
+Leia `backend/bdd/README.md` para documentação completa.
+
 ### Frontend (React)
 
 ```bash
