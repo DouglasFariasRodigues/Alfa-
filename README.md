@@ -320,23 +320,64 @@ CORS_ALLOWED_ORIGINS=http://localhost:8080
 
 ## 🧪 Testes
 
-### Backend (Django)
+### Backend (Django/Pytest)
 
-#### Testes Unitários
+A suite de testes está organizada em 3 níveis: **Unitários**, **Integração** e **E2E**.
+
+#### Rodar Todos os Testes
 ```bash
 cd backend
-python manage.py test
+pytest tests/
 ```
 
-#### Testes BDD (Behave)
+#### Testes Unitários (rápidos, sem banco)
 ```bash
-cd backend
-python -m behave
+pytest tests/unit/ -v
+```
+Cobre: modelos, CRUD, permissões, transações, validações e eventos.
+
+#### Testes de Integração (com banco de dados)
+```bash
+pytest tests/integration/ -v
+```
+Cobre: fluxos de membros, finanças, eventos, papéis e conteúdo.
+
+#### Testes E2E/Selenium (testes na interface)
+```bash
+pytest tests/e2e/ -v
+```
+Cobre: login e fluxos completos na UI.
+
+#### Rodar Categoria Específica
+```bash
+# Apenas testes de finanças
+pytest -m finance
+
+# Apenas autenticação
+pytest -m auth
+
+# Apenas eventos
+pytest -m events
+
+# Apenas testes lentos (E2E)
+pytest -m slow
 ```
 
-#### Teste Específico
+#### Rodar um Arquivo ou Teste Específico
 ```bash
-python -m behave features/login.feature
+# Um arquivo inteiro
+pytest tests/unit/test_models.py -v
+
+# Uma classe de testes
+pytest tests/unit/test_models.py::TestAdminModel -v
+
+# Um teste individual
+pytest tests/unit/test_models.py::TestAdminModel::test_admin_creation -v
+```
+
+#### Com Coverage (cobertura de código)
+```bash
+pytest tests/ --cov=app_alfa --cov-report=html
 ```
 
 ### Frontend (React)
