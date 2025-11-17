@@ -16,6 +16,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 # Crie suas views aqui.
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def gerar_pdf_transferencia(request, transferencia_id):
     try:
         transferencia = Transferencia.objects.get(id=transferencia_id)
@@ -27,6 +29,8 @@ def gerar_pdf_transferencia(request, transferencia_id):
     except Transferencia.DoesNotExist:
         return HttpResponse('Transferência não encontrada', status=404)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def gerar_cartao_membro(request, membro_id):
     try:
         membro = Membro.objects.get(id=membro_id)
