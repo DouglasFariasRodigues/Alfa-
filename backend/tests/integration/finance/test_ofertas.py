@@ -3,7 +3,7 @@ Testes de integração para ofertas e transações financeiras.
 Valida fluxos completos de entrada/saída de dinheiro.
 """
 import pytest
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 from decimal import Decimal
 from django.utils import timezone
 
@@ -14,8 +14,10 @@ from app_alfa.models import (
 
 @pytest.mark.integration
 @pytest.mark.finance
-class TestOfertasIntegration(TestCase):
+class TestOfertasIntegration(TransactionTestCase):
     """Testes de integração para fluxo de ofertas"""
+    
+    reset_sequences = True
     
     def setUp(self):
         """Preparar dados de teste"""
@@ -120,8 +122,11 @@ class TestOfertasIntegration(TestCase):
 
 @pytest.mark.integration
 @pytest.mark.finance
-class TestTransacoesIntegration(TestCase):
+@pytest.mark.django_db
+class TestTransacoesIntegration(TransactionTestCase):
     """Testes de integração para transações financeiras"""
+    
+    reset_sequences = True
     
     def setUp(self):
         """Preparar dados de teste"""

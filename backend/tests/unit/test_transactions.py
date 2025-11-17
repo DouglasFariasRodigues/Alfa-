@@ -3,7 +3,7 @@ Testes para transações e análise financeira.
 Testes de modelos de Oferta, Doação e Transacao.
 """
 import pytest
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 from decimal import Decimal
 from django.utils import timezone
 
@@ -176,8 +176,11 @@ class TestBusinessLogicFinance(TestCase):
 
 @pytest.mark.unit
 @pytest.mark.finance
-class TestTransacao(TestCase):
+@pytest.mark.django_db
+class TestTransacao(TransactionTestCase):
     """Testes para o modelo Transacao"""
+    
+    reset_sequences = True
     
     def setUp(self):
         """Configuração inicial"""
@@ -365,8 +368,11 @@ class TestTransacao(TestCase):
 
 @pytest.mark.unit
 @pytest.mark.finance
-class TestTransacaoFinancial(TestCase):
+@pytest.mark.django_db
+class TestTransacaoFinancial(TransactionTestCase):
     """Testes de análise financeira de transações"""
+    
+    reset_sequences = True
     
     def setUp(self):
         """Configuração inicial"""
