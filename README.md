@@ -320,24 +320,129 @@ CORS_ALLOWED_ORIGINS=http://localhost:8080
 
 ## 🧪 Testes
 
-### Backend (Django)
+### Backend (Django/Pytest)
 
-#### Testes Unitários
+A suite de testes está organizada em 3 níveis: **Unitários**, **Integração** e **E2E**.
+
+#### Rodar Todos os Testes
 ```bash
 cd backend
-python manage.py test
+pytest tests/
 ```
 
-#### Testes BDD (Behave)
+#### Testes Unitários (rápidos, sem banco)
 ```bash
-cd backend
-python -m behave
+pytest tests/unit/ -v
+```
+Cobre: modelos, CRUD, permissões, transações, validações e eventos.
+
+#### Testes de Integração (com banco de dados)
+```bash
+pytest tests/integration/ -v
+```
+Cobre: fluxos de membros, finanças, eventos, papéis e conteúdo.
+
+#### Testes E2E/Selenium (testes na interface)
+```bash
+pytest tests/e2e/ -v
+```
+Cobre: login e fluxos completos na UI.
+
+#### Rodar Categoria Específica
+```bash
+# Apenas testes de finanças
+pytest -m finance
+
+# Apenas autenticação
+pytest -m auth
+
+# Apenas eventos
+pytest -m events
+
+# Apenas testes lentos (E2E)
+pytest -m slow
 ```
 
-#### Teste Específico
+#### Rodar um Arquivo ou Teste Específico
 ```bash
-python -m behave features/login.feature
+# Um arquivo inteiro
+pytest tests/unit/test_models.py -v
+
+# Uma classe de testes
+pytest tests/unit/test_models.py::TestAdminModel -v
+
+# Um teste individual
+pytest tests/unit/test_models.py::TestAdminModel::test_admin_creation -v
 ```
+
+#### Com Coverage (cobertura de código)
+```bash
+pytest tests/ --cov=app_alfa --cov-report=html
+```
+
+### Backend (BDD/Behave)
+
+Testes BDD organizados em **Integration** e **E2E** com Gherkin (linguagem português).
+
+#### Rodar Todos os Testes BDD
+```bash
+cd backend/bdd
+behave
+```
+
+#### Rodar por Nível
+```bash
+# Testes de integração (com banco)
+behave integration/
+
+# Testes End-to-End (fluxos completos)
+behave e2e/
+```
+
+#### Rodar por Domínio
+```bash
+# Autenticação e JWT
+behave integration/auth/
+
+# Gerenciamento de membros
+behave integration/members/
+
+# Finanças (ofertas e doações)
+behave integration/finance/
+
+# Eventos e fotos
+behave integration/events/
+
+# Visualização de conteúdo
+behave integration/content/
+
+# Fluxos completos de usuário
+behave e2e/flows/
+```
+
+#### Rodar com Verbosidade
+```bash
+behave -v              # Verbose
+behave --no-capture    # Sem captura de output
+behave --format plain  # Formato texto
+```
+
+#### Estrutura dos Testes BDD
+```
+backend/bdd/
+├── integration/        # Testes com banco de dados
+│   ├── auth/          # Login, JWT, autenticação
+│   ├── members/       # Registro e gerenciamento de membros
+│   ├── finance/       # Ofertas e doações
+│   ├── events/        # Eventos e fotos
+│   └── content/       # Visualização de conteúdo
+├── e2e/               # Testes End-to-End
+│   ├── auth/          # Permissões de usuários
+│   └── flows/         # Fluxos completos de negócio
+└── steps/             # Steps consolidados por domínio
+```
+
+Leia `backend/bdd/README.md` para documentação completa.
 
 ### Frontend (React)
 
