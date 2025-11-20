@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,56 +7,82 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Calendar, MapPin, Users, Clock, Check, X } from "lucide-react";
+import { auth } from "@/lib/auth";
 
-// Mock data - será substituído pela API Django
-const eventos = [
-  {
-    id: 1,
-    titulo: "Culto Dominical",
-    descricao: "Culto de adoração e palavra",
-    data: "2024-01-28",
-    horario: "19:00",
-    local: "Templo Principal",
-    categoria: "Culto",
-    status: "Confirmado",
-    capacidade: 500,
-    participantesConfirmados: 234,
-    jaConfirmei: false
-  },
-  {
-    id: 2,
-    titulo: "Reunião de Jovens",
-    descricao: "Encontro semanal dos jovens",
-    data: "2024-01-30",
-    horario: "20:00",
-    local: "Sala de Jovens",
-    categoria: "Ministério",
-    status: "Confirmado",
-    capacidade: 100,
-    participantesConfirmados: 67,
-    jaConfirmei: true
-  },
-  {
-    id: 3,
-    titulo: "Conferência Anual",
-    descricao: "Grande evento com palestrantes especiais",
-    data: "2024-02-15",
-    horario: "08:00",
-    local: "Centro de Convenções",
-    categoria: "Conferência",
-    status: "Confirmado",
-    capacidade: 1000,
-    participantesConfirmados: 456,
-    jaConfirmei: false
-  }
-];
+interface Evento {
+  id: number;
+  titulo: string;
+  descricao: string;
+  data: string;
+  hora: string;
+  local: string;
+  categoria: string;
+  status: string;
+  capacidade: number;
+  participantesConfirmados: number;
+  jaConfirmei: boolean;
+}
 
 export default function EventosVisualizacao() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [eventosState, setEventosState] = useState(eventos);
+  const [eventos, setEventos] = useState<Evento[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const filteredEventos = eventosState.filter(evento =>
+  // Carregar eventos da API
+  useEffect(() => {
+    carregarEventos();
+  }, []);
+
+  const carregarEventos = async () => {
+    try {
+      const token = auth.getToken();
+      if (!token) {
+        toast({
+          title: "Erro",
+          description: "Token de autenticação não encontrado",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const response = await fetch('http://localhost:8000/api/eventos/list/', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setEventos(data.eventos);
+        } else {
+          toast({
+            title: "Erro",
+            description: data.message,
+            variant: "destructive"
+          });
+        }
+      } else {
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar eventos",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro de conexão",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredEventos = eventos.filter(evento =>
     evento.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
     evento.categoria.toLowerCase().includes(searchTerm.toLowerCase()) ||
     evento.local.toLowerCase().includes(searchTerm.toLowerCase())
@@ -80,28 +106,65 @@ export default function EventosVisualizacao() {
     }
   };
 
-  const confirmarPresenca = (eventoId: number) => {
-    setEventosState(prev => 
-      prev.map(evento => 
-        evento.id === eventoId 
-          ? { 
-              ...evento, 
-              jaConfirmei: !evento.jaConfirmei,
-              participantesConfirmados: evento.jaConfirmei 
-                ? evento.participantesConfirmados - 1 
-                : evento.participantesConfirmados + 1
-            }
-          : evento
-      )
-    );
+  const confirmarPresenca = async (eventoId: number) => {
+    try {
+      const token = auth.getToken();
+      if (!token) {
+        toast({
+          title: "Erro",
+          description: "Token de autenticação não encontrado",
+          variant: "destructive"
+        });
+        return;
+      }
 
-    const evento = eventosState.find(e => e.id === eventoId);
-    if (evento) {
+      const response = await fetch(`http://localhost:8000/api/eventos/${eventoId}/confirmar/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          // Atualizar estado do evento
+          setEventos(prev =>
+            prev.map(evento =>
+              evento.id === eventoId
+                ? {
+                    ...evento,
+                    jaConfirmei: data.confirmado,
+                    participantesConfirmados: data.participantesConfirmados
+                  }
+                : evento
+            )
+          );
+
+          toast({
+            title: data.confirmado ? "Presença confirmada" : "Presença cancelada",
+            description: data.message,
+          });
+        } else {
+          toast({
+            title: "Erro",
+            description: data.message,
+            variant: "destructive"
+          });
+        }
+      } else {
+        toast({
+          title: "Erro",
+          description: "Erro ao confirmar presença",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
       toast({
-        title: evento.jaConfirmei ? "Presença cancelada" : "Presença confirmada",
-        description: evento.jaConfirmei 
-          ? `Você cancelou sua presença no evento "${evento.titulo}"`
-          : `Você confirmou sua presença no evento "${evento.titulo}"`,
+        title: "Erro",
+        description: "Erro de conexão",
+        variant: "destructive"
       });
     }
   };
@@ -167,7 +230,12 @@ export default function EventosVisualizacao() {
             </div>
           </div>
 
-          <Table>
+          {loading ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Carregando eventos...</p>
+            </div>
+          ) : (
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Evento</TableHead>
@@ -184,7 +252,14 @@ export default function EventosVisualizacao() {
                 <TableRow key={evento.id}>
                   <TableCell className="font-medium">
                     <div>
-                      <div className="font-medium">{evento.titulo}</div>
+                      <div className="font-medium flex items-center gap-2">
+                        {evento.titulo}
+                        {evento.jaConfirmei && (
+                          <Badge className="bg-green-100 text-green-800 text-xs">
+                            Confirmado
+                          </Badge>
+                        )}
+                      </div>
                       <div className="text-sm text-muted-foreground">{evento.descricao}</div>
                     </div>
                   </TableCell>
@@ -247,6 +322,7 @@ export default function EventosVisualizacao() {
               ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
     </div>

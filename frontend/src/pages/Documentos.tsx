@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { auth } from "@/lib/auth";
 
 const documentos = [
   {
@@ -63,6 +64,8 @@ const tiposDocumento = [
 ];
 
 export default function Documentos() {
+  const userType = auth.getUserType();
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Gerado":
@@ -268,34 +271,36 @@ export default function Documentos() {
       </div>
 
       {/* Quick Generate */}
-      <Card className="shadow-card">
-        <CardHeader>
-          <CardTitle>Geração Rápida de Documentos</CardTitle>
-          <CardDescription>
-            Crie documentos automatizados com apenas alguns cliques
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Button variant="outline" className="h-20 flex-col space-y-2">
-              <FileText className="h-6 w-6" />
-              <span>Certificado de Batismo</span>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col space-y-2">
-              <FileText className="h-6 w-6" />
-              <span>Carta de Transferência</span>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col space-y-2">
-              <FileText className="h-6 w-6" />
-              <span>Relatório Financeiro</span>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col space-y-2">
-              <FileText className="h-6 w-6" />
-              <span>Declaração de Membro</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {userType === 'admin' && (
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle>Geração Rápida de Documentos</CardTitle>
+            <CardDescription>
+              Crie documentos automatizados com apenas alguns cliques
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Button variant="outline" className="h-20 flex-col space-y-2">
+                <FileText className="h-6 w-6" />
+                <span>Certificado de Batismo</span>
+              </Button>
+              <Button variant="outline" className="h-20 flex-col space-y-2">
+                <FileText className="h-6 w-6" />
+                <span>Carta de Transferência</span>
+              </Button>
+              <Button variant="outline" className="h-20 flex-col space-y-2">
+                <FileText className="h-6 w-6" />
+                <span>Relatório Financeiro</span>
+              </Button>
+              <Button variant="outline" className="h-20 flex-col space-y-2">
+                <FileText className="h-6 w-6" />
+                <span>Declaração de Membro</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

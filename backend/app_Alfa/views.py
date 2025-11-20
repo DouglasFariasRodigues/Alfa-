@@ -11,6 +11,7 @@ import json
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.utils import timezone
 
 
 # Crie suas views aqui.
@@ -52,6 +53,39 @@ def gerar_cartao_membro(request, membro_id):
         return response
     except Membro.DoesNotExist:
         return HttpResponse('Membro não encontrado', status=404)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def transacoes_list(request):
+    try:
+        # Buscar todas as transações ativas
+        transacoes = Transacao.objects.filter(is_active=True).order_by('-data')
+
+        transacoes_data = []
+        for transacao in transacoes:
+            transacoes_data.append({
+                'id': transacao.id,
+                'tipo': transacao.tipo,
+                'categoria': transacao.categoria,
+                'valor': float(transacao.valor),
+                'data': transacao.data.strftime('%Y-%m-%d'),
+                'descricao': transacao.descricao or '',
+                'metodo': transacao.metodo_pagamento or '',
+                'origem': 'Membros da congregação' if transacao.tipo == 'entrada' else '',
+                'destino': 'Diversos' if transacao.tipo == 'saida' else '',
+                'finalidade': 'Diversas' if transacao.tipo == 'saida' else '',
+                'observacoes': transacao.observacoes or ''
+            })
+
+        return JsonResponse({
+            'success': True,
+            'transacoes': transacoes_data
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao listar transações: {str(e)}'
+        }, status=400)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -247,4 +281,109 @@ def comentario_create(request):
         return JsonResponse({
             'success': False,
             'message': f'Erro ao criar comentário: {str(e)}'
+        }, status=400)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def eventos_list(request):
+    try:
+        user = request.user
+        usuario = Usuario.objects.filter(id=user.id).first()
+        if not usuario:
+            return JsonResponse({
+                'success': False,
+                'message': 'Usuário não encontrado'
+            }, status=404)
+
+        # Buscar todos os eventos futuros
+        eventos = Evento.objects.filter(data__gte=timezone.now()).order_by('data')
+
+        eventos_data = []
+        for evento in eventos:
+            # Verificar se o usuário já confirmou presença
+            participacao = ParticipacaoEvento.objects.filter(
+                evento=evento,
+                participante=usuario
+            ).first()
+
+            confirmado = participacao.confirmado if participacao else False
+
+            # Contar participantes confirmados
+            participantes_confirmados = ParticipacaoEvento.objects.filter(
+                evento=evento,
+                confirmado=True
+            ).count()
+
+            eventos_data.append({
+                'id': evento.id,
+                'titulo': evento.titulo,
+                'descricao': evento.descricao,
+                'data': evento.data.strftime('%Y-%m-%d'),
+                'hora': evento.data.strftime('%H:%M'),
+                'local': evento.local,
+                'categoria': 'Evento',  # Campo padrão, pode ser expandido
+                'status': 'Confirmado',  # Campo padrão, pode ser expandido
+                'capacidade': 500,  # Campo padrão, pode ser expandido
+                'participantesConfirmados': participantes_confirmados,
+                'jaConfirmei': confirmado
+            })
+
+        return JsonResponse({
+            'success': True,
+            'eventos': eventos_data
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao listar eventos: {str(e)}'
+        }, status=400)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def evento_confirmar_presenca(request, evento_id):
+    try:
+        user = request.user
+        usuario = Usuario.objects.filter(id=user.id).first()
+        if not usuario:
+            return JsonResponse({
+                'success': False,
+                'message': 'Usuário não encontrado'
+            }, status=404)
+
+        # Verificar se o evento existe
+        try:
+            evento = Evento.objects.get(id=evento_id)
+        except Evento.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Evento não encontrado'
+            }, status=404)
+
+        # Buscar ou criar participação
+        participacao, created = ParticipacaoEvento.objects.get_or_create(
+            evento=evento,
+            participante=usuario,
+            defaults={'confirmado': False}
+        )
+
+        # Alternar status de confirmação
+        participacao.confirmado = not participacao.confirmado
+        participacao.save()
+
+        # Contar participantes confirmados
+        participantes_confirmados = ParticipacaoEvento.objects.filter(
+            evento=evento,
+            confirmado=True
+        ).count()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Presença confirmada!' if participacao.confirmado else 'Presença cancelada!',
+            'confirmado': participacao.confirmado,
+            'participantesConfirmados': participantes_confirmados
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao confirmar presença: {str(e)}'
         }, status=400)

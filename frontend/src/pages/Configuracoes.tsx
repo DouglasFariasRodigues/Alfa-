@@ -5,21 +5,48 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  Church, 
-  User, 
-  Bell, 
-  Shield, 
-  Database, 
-  Mail, 
-  Smartphone, 
+import {
+  Church,
+  User,
+  Bell,
+  Shield,
+  Database,
+  Mail,
+  Smartphone,
   Globe,
   Save,
   Upload
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { auth } from "@/lib/auth";
+import { useState } from "react";
 
 export default function Configuracoes() {
+  const userName = auth.getUserName();
+  const userEmail = auth.getUserEmail();
+  const userProfileImage = auth.getUserProfileImage();
+  const [profileImage, setProfileImage] = useState(userProfileImage);
+
+  const getInitials = (name: string) => {
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target?.result as string;
+        setProfileImage(imageUrl);
+        auth.setUserProfileImage(imageUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -135,9 +162,9 @@ export default function Configuracoes() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="nome-pastor">Nome Completo</Label>
-                  <Input 
-                    id="nome-pastor" 
-                    defaultValue="Pastor João Silva" 
+                  <Input
+                    id="nome-pastor"
+                    defaultValue={userName}
                     placeholder="Seu nome completo"
                   />
                 </div>

@@ -160,6 +160,17 @@ class Comentario(models.Model):
             )
         ]
 
+class ParticipacaoEvento(models.Model):
+    evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='participacoes')
+    participante = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='participacoes_eventos')
+    confirmado = models.BooleanField(default=False)
+    data_confirmacao = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['evento', 'participante']
+        verbose_name = 'Participação em Evento'
+        verbose_name_plural = 'Participações em Eventos'
+
 
 
 class ONG(models.Model):

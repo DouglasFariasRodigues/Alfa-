@@ -1,69 +1,184 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AppLayout } from "./components/layout/AppLayout";
-import Landing from "./pages/Landing";
-import Dashboard from "./pages/Dashboard";
-import Membros from "./pages/Membros";
-import NovoMembro from "./pages/NovoMembro";
-import DetalhesMembro from "./pages/DetalhesMembro";
-import EditarMembro from "./pages/EditarMembro";
-import Eventos from "./pages/Eventos";
-import NovoEvento from "./pages/NovoEvento";
-import DetalhesEvento from "./pages/DetalhesEvento";
-import EditarEvento from "./pages/EditarEvento";
-import Financas from "./pages/Financas";
-import NovaTransacao from "./pages/NovaTransacao";
-import Documentos from "./pages/Documentos";
-import Configuracoes from "./pages/Configuracoes";
-import NotFound from "./pages/NotFound";
-// Páginas para membros comuns (visualização)
-import MembrosVisualizacao from "./pages/MembrosVisualizacao";
-import EventosVisualizacao from "./pages/EventosVisualizacao";
-import FinancasVisualizacao from "./pages/FinancasVisualizacao";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AppLayout } from "@/components/layout/AppLayout";
 
-const queryClient = new QueryClient();
+// Pages
+import Landing from "@/pages/Landing";
+import Register from "@/pages/Register";
+import Dashboard from "@/pages/Dashboard";
+import Membros from "@/pages/Membros";
+import NovoMembro from "@/pages/NovoMembro";
+import DetalhesMembro from "@/pages/DetalhesMembro";
+import EditarMembro from "@/pages/EditarMembro";
+import Eventos from "@/pages/Eventos";
+import NovoEvento from "@/pages/NovoEvento";
+import EditarEvento from "@/pages/EditarEvento";
+import DetalhesEvento from "@/pages/DetalhesEvento";
+import Financas from "@/pages/Financas";
+import FinancasPublico from "@/pages/FinancasPublico";
+import NovaTransacao from "@/pages/NovaTransacao";
+import FinancasVisualizacao from "@/pages/FinancasVisualizacao";
+import Documentos from "@/pages/Documentos";
+import Configuracoes from "@/pages/Configuracoes";
+import Perfil from "@/pages/Perfil";
+import MemberView from "@/pages/MemberView";
+import MemberEvents from "@/pages/MemberEvents";
+import NotFound from "@/pages/NotFound";
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+function App() {
+  return (
+    <Router>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Landing />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/financas-publico" element={<FinancasPublico />} />
+
+        {/* Protected Routes */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Dashboard />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/posts" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <div className="p-6">
+                <h1 className="text-3xl font-bold">Postagens</h1>
+                <p className="text-muted-foreground">Página de postagens em desenvolvimento</p>
+              </div>
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/membros" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <MemberView />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/membros" element={
+          <ProtectedRoute allowedRoles={["admin", "secretario", "pastor", "diacono", "presbitero", "missionario"]}>
+            <AppLayout>
+              <Membros />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/membros/novo" element={
+          <ProtectedRoute allowedRoles={["admin", "secretario", "pastor", "diacono", "presbitero", "missionario"]}>
+            <AppLayout>
+              <NovoMembro />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/membros/:id" element={
+          <ProtectedRoute allowedRoles={["admin", "secretario", "pastor", "diacono", "presbitero", "missionario"]}>
+            <AppLayout>
+              <DetalhesMembro />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/membros/:id/editar" element={
+          <ProtectedRoute allowedRoles={["admin", "secretario", "pastor", "diacono", "presbitero", "missionario"]}>
+            <AppLayout>
+              <EditarMembro />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/eventos" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <MemberEvents />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/eventos/novo" element={
+          <ProtectedRoute allowedRoles={["admin", "secretario", "pastor", "diacono", "presbitero", "missionario"]}>
+            <AppLayout>
+              <NovoEvento />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/eventos/:id" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <DetalhesEvento />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/eventos/:id/editar" element={
+          <ProtectedRoute allowedRoles={["admin", "secretario", "pastor", "diacono", "presbitero", "missionario"]}>
+            <AppLayout>
+              <EditarEvento />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/financas" element={
+          <AppLayout>
+            <Financas />
+          </AppLayout>
+        } />
+
+        <Route path="/financas/novo" element={
+          <ProtectedRoute allowedRoles={["admin", "secretario", "pastor", "diacono", "presbitero", "missionario"]}>
+            <AppLayout>
+              <NovaTransacao />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/financas/visualizacao" element={
+          <ProtectedRoute allowedRoles={["admin", "secretario", "pastor", "diacono", "presbitero", "missionario"]}>
+            <AppLayout>
+              <FinancasVisualizacao />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/documentos" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Documentos />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/configuracoes" element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AppLayout>
+              <Configuracoes />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/perfil" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Perfil />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        {/* 404 Route */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
       <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Landing Page */}
-          <Route path="/" element={<Landing />} />
-          
-          {/* Rotas do Sistema */}
-          <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
-          
-          {/* Rotas Admin */}
-          <Route path="/membros" element={<AppLayout><Membros /></AppLayout>} />
-          <Route path="/membros/novo" element={<AppLayout><NovoMembro /></AppLayout>} />
-          <Route path="/membros/:id" element={<AppLayout><DetalhesMembro /></AppLayout>} />
-          <Route path="/membros/:id/editar" element={<AppLayout><EditarMembro /></AppLayout>} />
-          <Route path="/eventos" element={<AppLayout><Eventos /></AppLayout>} />
-          <Route path="/eventos/novo" element={<AppLayout><NovoEvento /></AppLayout>} />
-          <Route path="/eventos/:id" element={<AppLayout><DetalhesEvento /></AppLayout>} />
-          <Route path="/eventos/:id/editar" element={<AppLayout><EditarEvento /></AppLayout>} />
-          <Route path="/financas" element={<AppLayout><Financas /></AppLayout>} />
-          <Route path="/financas/nova-transacao" element={<AppLayout><NovaTransacao /></AppLayout>} />
-          <Route path="/documentos" element={<AppLayout><Documentos /></AppLayout>} />
-          <Route path="/configuracoes" element={<AppLayout><Configuracoes /></AppLayout>} />
-          
-          {/* Rotas para Membros Comuns (Visualização) */}
-          <Route path="/membro/membros" element={<AppLayout><MembrosVisualizacao /></AppLayout>} />
-          <Route path="/membro/eventos" element={<AppLayout><EventosVisualizacao /></AppLayout>} />
-          <Route path="/membro/financas" element={<AppLayout><FinancasVisualizacao /></AppLayout>} />
-          
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </Router>
+  );
+}
 
 export default App;

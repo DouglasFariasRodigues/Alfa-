@@ -140,18 +140,19 @@ export default function NovoMembro() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cargo">Cargo na Igreja</Label>
-                <Select onValueChange={(value) => handleInputChange("cargo", value)} defaultValue="Membro">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Membro">Membro</SelectItem>
-                    <SelectItem value="Diácono">Diácono</SelectItem>
-                    <SelectItem value="Presbítero">Presbítero</SelectItem>
-                    <SelectItem value="Pastor">Pastor</SelectItem>
-                    <SelectItem value="Missionário">Missionário</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <Select onValueChange={(value) => handleInputChange("cargo", value)} defaultValue="Visitante">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Visitante">Visitante</SelectItem>
+                      <SelectItem value="Membro">Membro</SelectItem>
+                      <SelectItem value="Diácono">Diácono</SelectItem>
+                      <SelectItem value="Presbítero">Presbítero</SelectItem>
+                      <SelectItem value="Pastor">Pastor</SelectItem>
+                      <SelectItem value="Missionário">Missionário</SelectItem>
+                    </SelectContent>
+                  </Select>
               </div>
             </div>
 

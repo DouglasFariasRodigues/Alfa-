@@ -24,7 +24,7 @@ import {
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
-  { title: "Membros", url: "/membros", icon: Users },
+  { title: "Comunidade", url: "/membros", icon: Users },
   { title: "Eventos", url: "/eventos", icon: Calendar },
   { title: "Finanças", url: "/financas", icon: DollarSign },
 ];

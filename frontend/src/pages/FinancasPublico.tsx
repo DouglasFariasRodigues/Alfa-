@@ -1,7 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, DollarSign, PieChart, Plus, Download, Calendar, Target, Users, Building } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, PieChart, Calendar, Target, Users, Building } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -10,8 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { auth } from "@/lib/auth";
-import { AppLayout } from "@/components/layout/AppLayout";
 
 const transacoesMensais = [
   {
@@ -118,11 +115,7 @@ const categoriasSaidas = [
   { nome: "Outros", valor: 4850, percentual: 20, cor: "bg-pink-500", destino: "Diversos", finalidade: "Várias" }
 ];
 
-export default function Financas() {
-  const isLoggedIn = auth.isLoggedIn();
-  const userType = auth.getUserType();
-  const hasAdminAccess = isLoggedIn && ["admin", "secretario", "pastor", "diacono", "presbitero", "missionario"].includes(userType || "");
-
+export default function FinancasPublico() {
   const totalEntradas = transacoesMensais
     .filter(t => t.tipo === "Entrada")
     .reduce((sum, t) => sum + t.valor, 0);
@@ -137,44 +130,18 @@ export default function Financas() {
     .filter(t => t.tipo === "Entrada" && t.categoria === "Doação")
     .reduce((sum, t) => sum + t.valor, 0);
 
-  const totalRetiradas = totalSaidas;
-
-  const content = (
+  return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      {hasAdminAccess ? (
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Finanças - Janeiro 2024</h1>
-            <p className="text-muted-foreground">
-              Relatório financeiro mensal detalhado
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              Relatório PDF
-            </Button>
-            <Button
-              onClick={() => window.location.href = '/financas/novo'}
-              className="gradient-primary text-white shadow-elegant hover:opacity-90"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Transação
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Transparência Financeira</h1>
-          <p className="text-muted-foreground">
-            Relatório financeiro mensal detalhado - Janeiro 2024
-          </p>
-          <p className="text-sm text-muted-foreground">
-            📊 Informações públicas para transparência da congregação
-          </p>
-        </div>
-      )}
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">Transparência Financeira</h1>
+        <p className="text-muted-foreground">
+          Relatório financeiro mensal detalhado - Janeiro 2024
+        </p>
+        <p className="text-sm text-muted-foreground">
+          📊 Informações públicas para transparência da congregação
+        </p>
+      </div>
 
       {/* Monthly Financial Summary */}
       <div className="grid gap-4 md:grid-cols-4">
