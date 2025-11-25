@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Edit, Phone, Mail, MapPin, Calendar, User, Briefcase, FileText, Shield } from 'lucide-react'
+import { ArrowLeft, Edit, Phone, Mail, MapPin, Calendar, User, Briefcase, FileText, Shield, Download, Upload, Plus } from 'lucide-react'
 import { usePermissions } from '@/hooks/usePermissions'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,6 +8,11 @@ import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useMembro } from '@/hooks/useMembros'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useDocumentosPorMembro, type Documento } from '@/hooks/useDocumentos'
+import { apiClient } from '@/lib/api'
+import { useToast } from '@/hooks/use-toast'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 export default function DetalhesMembro() {
   const { id } = useParams<{ id: string }>()
@@ -15,9 +20,12 @@ export default function DetalhesMembro() {
   
   const { data: membro, isLoading, error } = useMembro(Number(id))
   const { canManage, user } = usePermissions()
+  const { data: documentos = [], isLoading: isLoadingDocumentos } = useDocumentosPorMembro(Number(id))
+  const { toast } = useToast()
   
   // Verificar se o usuário pode gerenciar membros (criar, editar, deletar)
   const canManageMembers = canManage('membros')
+  const canManageDocuments = canManage('documentos')
 
   if (isLoading) {
     return (
@@ -270,12 +278,128 @@ export default function DetalhesMembro() {
         </Card>
       </div>
 
-      {/* Documentos e Observações */}
+      {/* Documentos Anexados */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Documentos Anexados
+              </CardTitle>
+              <CardDescription>
+                Documentos e certificados relacionados a este membro
+              </CardDescription>
+            </div>
+            {canManageDocuments && (
+              <Button size="sm" variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Documento
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoadingDocumentos ? (
+            <div className="space-y-3">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
+          ) : documentos.length === 0 ? (
+            <div className="text-center py-8">
+              <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+              <p className="text-sm text-muted-foreground">
+                Nenhum documento anexado a este membro.
+              </p>
+              {canManageDocuments && (
+                <Button size="sm" variant="outline" className="mt-4">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Primeiro Documento
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {documentos.map((documento: Documento) => (
+                <div
+                  key={documento.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                >
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium text-sm">
+                          {documento.tipo === 'cartao_membro' && 'Cartão de Membro'}
+                          {documento.tipo === 'transferencia' && 'Transferência de Igreja'}
+                          {documento.tipo === 'registro' && 'Registro de Membro'}
+                        </h4>
+                        <Badge variant="secondary" className="text-xs">
+                          {documento.arquivo ? 'Com arquivo' : 'Sem arquivo'}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <span>
+                          Gerado em {format(new Date(documento.gerado_em), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                        </span>
+                        {documento.gerado_por_nome && (
+                          <>
+                            <span>•</span>
+                            <span>Por {documento.gerado_por_nome}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {documento.arquivo && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          try {
+                            const blob = await apiClient.downloadDocumento(documento.id)
+                            const url = window.URL.createObjectURL(blob)
+                            const a = document.createElement('a')
+                            a.href = url
+                            a.download = `documento-${documento.id}.pdf`
+                            document.body.appendChild(a)
+                            a.click()
+                            window.URL.revokeObjectURL(url)
+                            document.body.removeChild(a)
+                            toast({
+                              title: 'Download iniciado',
+                              description: 'O documento está sendo baixado.',
+                            })
+                          } catch (error) {
+                            toast({
+                              title: 'Erro ao baixar',
+                              description: 'Não foi possível baixar o documento.',
+                              variant: 'destructive',
+                            })
+                          }
+                        }}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Baixar
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Dados Pessoais e Observações */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Documentos e Observações
+            <User className="h-5 w-5" />
+            Dados Pessoais e Observações
           </CardTitle>
           <CardDescription>
             Informações adicionais sobre o membro
@@ -284,7 +408,7 @@ export default function DetalhesMembro() {
         <CardContent>
           <div className="grid gap-6 md:grid-cols-2">
             <div>
-              <h4 className="font-medium text-sm text-muted-foreground mb-3">Documentos</h4>
+              <h4 className="font-medium text-sm text-muted-foreground mb-3">Documentos de Identificação</h4>
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm">CPF:</span>

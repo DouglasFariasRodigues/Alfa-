@@ -541,6 +541,11 @@ class ApiClient {
     return this.request<any[]>('/documentos-membros/');
   }
 
+  async getDocumentosPorMembro(membroId: number): Promise<any[]> {
+    const documentos = await this.request<any[]>('/documentos-membros/');
+    return documentos.filter((doc: any) => doc.membro === membroId);
+  }
+
   async getDocumento(id: number): Promise<any> {
     return this.request<any>(`/documentos-membros/${id}/`);
   }

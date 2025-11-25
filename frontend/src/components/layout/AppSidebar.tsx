@@ -3,7 +3,6 @@ import {
   Users, 
   Calendar, 
   DollarSign, 
-  FileText, 
   Settings,
   Shield,
   Newspaper
@@ -36,7 +35,6 @@ const mainItems = [
 
 const otherItems = [
   { title: "Cargos", url: "/cargos", icon: Shield, permission: "cargos" },
-  { title: "Documentos", url: "/documentos", icon: FileText, permission: "documentos" },
   { title: "Configurações", url: "/configuracoes", icon: Settings, permission: null }, // Sempre visível
 ];
 

@@ -28,4 +28,13 @@ export const useDocumento = (id: number) => {
   });
 };
 
+export const useDocumentosPorMembro = (membroId: number) => {
+  return useQuery({
+    queryKey: ['documentos', 'membro', membroId],
+    queryFn: () => apiClient.getDocumentosPorMembro(membroId),
+    enabled: !!membroId,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
+};
+
 
