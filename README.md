@@ -52,7 +52,7 @@ Sistema completo de gerenciamento para igrejas, desenvolvido com **Django REST F
 - **Django 5.0** - Framework web Python
 - **Django REST Framework** - API REST
 - **JWT Authentication** - Autenticação segura
-- **SQLite** - Banco de dados (desenvolvimento)
+- **Postgres** - Banco de dados (desenvolvimento)
 - **WeasyPrint** - Geração de PDFs
 - **CORS** - Cross-Origin Resource Sharing
 
